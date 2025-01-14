@@ -27,7 +27,7 @@ public class LuGameplayFrame : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "CoreUObject", "Engine", "InputCore", "NetCore"
+				"Core", "CoreUObject", "Engine", "InputCore", "NetCore","UMG"
 				// ... add other public dependencies that you statically link with here ...
 			}
 		);
@@ -44,6 +44,7 @@ public class LuGameplayFrame : ModuleRules
 				"GameplayTags",
 				"GameplayTasks",
 				"Paper2D"
+				
 				// ... add private dependencies that you statically link with here ...	
 			}
 		);

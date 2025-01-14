@@ -15,7 +15,7 @@ class USkeletalMeshComponent;
 * 关于本地播放的蒙太奇的数据（在服务器的情况下是所有蒙太奇，在客户端的情况下是预测蒙太奇）。永远不会直接复制。
 */
 USTRUCT()
-struct GASSHOOTER_API FGameplayAbilityLocalAnimMontageForMesh
+struct LUGAMEPLAYFRAME_API FGameplayAbilityLocalAnimMontageForMesh
 {
 	GENERATED_BODY();
 

@@ -6,7 +6,7 @@
 #include "Characters/Abilities/GSAbilityTypes.h"
 #include "GSTargetType.generated.h"
 
-class AGSCharacterBase;
+class AVTCharacterBase;
 
 
 class AActor;
@@ -26,8 +26,8 @@ public:
 
 	// 确定GE的对象
 	UFUNCTION(BlueprintNativeEvent)
-	void GetTargets(AGSCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;
-	virtual void GetTargets_Implementation(AGSCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;
+	void GetTargets(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;
+	virtual void GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;
 };
 
 /** Trivial Target：使用Owner */
@@ -39,7 +39,7 @@ class GASSHOOTER_API UGSTargetType_UseOwner : public UGSTargetType
 public:
 	UGSTargetType_UseOwner() {}
 	
-	virtual void GetTargets_Implementation(AGSCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const override;
+	virtual void GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const override;
 };
 
 /** Event Trivial Target：从Event Data获取Target */
@@ -51,5 +51,5 @@ class GASSHOOTER_API UGSTargetType_UseEventData : public UGSTargetType
 public:
 	UGSTargetType_UseEventData() {}
 
-	virtual void GetTargets_Implementation(AGSCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const override;
+	virtual void GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const override;
 };
