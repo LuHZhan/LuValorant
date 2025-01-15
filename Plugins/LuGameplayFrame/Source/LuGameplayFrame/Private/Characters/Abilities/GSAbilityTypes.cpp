@@ -1,21 +1,21 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSAbilityTypes.h"
+#include "..\..\..\Public\Characters\Abilities\VTAbilityTypes.h"
 #include "AbilitySystemGlobals.h"
-#include "Characters/Abilities/GSAbilitySystemComponent.h"
+#include "Characters/Abilities/VTAbilitySystemComponent.h"
 
-bool FGSGameplayEffectContainerSpec::HasValidEffects() const
+bool FVTGameplayEffectContainerSpec::HasValidEffects() const
 {
 	return TargetGameplayEffectSpecs.Num() > 0;
 }
 
-bool FGSGameplayEffectContainerSpec::HasValidTargets() const
+bool FVTGameplayEffectContainerSpec::HasValidTargets() const
 {
 	return TargetData.Num() > 0;
 }
 
-void FGSGameplayEffectContainerSpec::AddTargets(const TArray<FGameplayAbilityTargetDataHandle>& InTargetData, const TArray<FHitResult>& HitResults, const TArray<AActor*>& TargetActors)
+void FVTGameplayEffectContainerSpec::AddTargets(const TArray<FGameplayAbilityTargetDataHandle>& InTargetData, const TArray<FHitResult>& HitResults, const TArray<AActor*>& TargetActors)
 {
 	for (const FGameplayAbilityTargetDataHandle& TD : InTargetData)
 	{
@@ -36,7 +36,7 @@ void FGSGameplayEffectContainerSpec::AddTargets(const TArray<FGameplayAbilityTar
 	}
 }
 
-void FGSGameplayEffectContainerSpec::ClearTargets()
+void FVTGameplayEffectContainerSpec::ClearTargets()
 {
 	TargetData.Clear();
 }

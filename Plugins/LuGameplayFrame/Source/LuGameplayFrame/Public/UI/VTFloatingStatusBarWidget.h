@@ -15,8 +15,8 @@ class LUGAMEPLAYFRAME_API UVTFloatingStatusBarWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	// UPROPERTY(BlueprintReadOnly)
-	// class AGSCharacterBase* OwningCharacter;
+	UPROPERTY(BlueprintReadOnly)
+	class AVTCharacterBase* OwningCharacter;
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetHealthPercentage(float HealthPercentage);

@@ -43,10 +43,10 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	/**
-	 * 
+	 * 是否还活着
 	 * @return 
 	 */
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter")
 	virtual bool IsAlive() const;
 
 	/**
@@ -55,14 +55,14 @@ public:
 	virtual void RemoveCharacterAbilities();
 
 	/**
-	 * 
+	 * 死亡处理
 	 */
 	virtual void Die();
 
 	/**
-	 * 
+	 * 死亡处理完成
 	 */
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter")
 	virtual void FinishDying();
 
 	/**
@@ -74,110 +74,111 @@ public:
 
 	// Switch on AbilityID to return individual ability levels.
 	// TODO:
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter")
-	virtual int32 GetAbilityLevel(EGSAbilityInputID AbilityID) const;
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter")
+	virtual int32 GetAbilityLevel(EVTAbilityInputID AbilityID) const;
 
-	UPROPERTY(BlueprintAssignable, Category = "GASShooter|GSCharacter")
+	UPROPERTY(BlueprintAssignable, Category = "VT|GSCharacter")
 	FVTCharacterDiedDelegate OnCharacterDied;
 
 	/**
 	* Getters for attributes from GSAttributeSetBase
 	**/
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	int32 GetCharacterLevel() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMaxHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMana() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMaxMana() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMaxStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetShield() const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMaxShield() const;
 
 	// Current MoveSpeed
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMoveSpeed() const;
 
 	// Base MoveSpeed
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
 	float GetMoveSpeedBaseValue() const;
 
 protected:
 	FGameplayTag DeadTag;
 	FGameplayTag EffectRemoveOnDeathTag;
-
 	TArray<FVTDamageNumber> DamageNumberQueue;
 	FTimerHandle DamageNumberTimer;
-
-	// Reference to the ASC. It will live on the PlayerState or here if the character doesn't have a PlayerState.
+	
+	
+	/**
+	 *  初始AS
+	 */
 	UPROPERTY()
-	class UGSAbilitySystemComponent* AbilitySystemComponent;
+	class UVTAttributeSetBase* AttributeSetBase;
 
-	// Reference to the AttributeSetBase. It will live on the PlayerState or here if the character doesn't have a PlayerState.
-	UPROPERTY()
-	class UGSAttributeSetBase* AttributeSetBase;
+	/**
+	 *  初始化的GA List
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
+	TArray<TSubclassOf<class UVTGameplayAbility>> CharacterAbilities;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|GSCharacter")
-	FText CharacterName;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Animation")
-	UAnimMontage* DeathMontage;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Audio")
-	class USoundCue* DeathSound;
-
-	// Default abilities for this Character. These will be removed on Character death and regiven if Character respawns.
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Abilities")
-	TArray<TSubclassOf<class UGSGameplayAbility>> CharacterAbilities;
-
-	// Default attributes for a character for initializing on spawn/respawn.
-	// This is an instant GE that overrides the values for attributes that get reset on spawn/respawn.
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Abilities")
+	/**
+	 *  初始化AS的GE
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
 	TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
-	// These effects are only applied one time on startup
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|Abilities")
+	/**
+	 *  初始化的GE List
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 
-	UPROPERTY(EditAnywhere, Category = "GASShooter|UI")
-	TSubclassOf<class UVTDamageTextWidgetComponent> DamageNumberClass;
 
-	// Called when the game starts or when spawned
+	UPROPERTY()
+	class UVTAbilitySystemComponent* AbilitySystemComponent;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|GSCharacter")
+	FText CharacterName;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Animation")
+	UAnimMontage* DeathMontage;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Audio")
+	class USoundCue* DeathSound;
+	
+	UPROPERTY(EditAnywhere, Category = "VT|UI")
+	TSubclassOf<class UVTDamageTextWidgetComponent> DamageNumberClass;
+	
+	
 	virtual void BeginPlay() override;
 
-	// Grant abilities on the Server. The Ability Specs will be replicated to the owning client.
+	// CS
 	virtual void AddCharacterAbilities();
-
-	// Initialize the Character's attributes. Must run on Server but we run it on Client too
-	// so that we don't have to wait. The Server's replication to the Client won't matter since
-	// the values should be the same.
+	// CS
 	virtual void InitializeAttributes();
-
 	virtual void AddStartupEffects();
-
 	virtual void ShowDamageNumber();
 
 
 	/**
-	* Setters for Attributes. Only use these in special cases like Respawning, otherwise use a GE to change Attributes.
-	* These change the Attribute's Base Value.
+	*  会改变BaseValue
 	*/
 
 	virtual void SetHealth(float Health);

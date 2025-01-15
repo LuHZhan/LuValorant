@@ -6,16 +6,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
-#include "Characters/Abilities/AttributeSets/GSAttributeSetBase.h"
-#include "Characters/Abilities/GSAbilitySystemComponent.h"
+#include "..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
+#include "Characters/Abilities/VTAbilitySystemComponent.h"
 #include "Characters/Abilities/GSAbilitySystemGlobals.h"
-#include "Characters/Abilities/GSGameplayAbility.h"
-#include "Characters/GSCharacterMovementComponent.h"
+#include "Characters/Abilities/VTGameplayAbility.h"
+#include "Characters/VTCharacterMovementComponent.h"
 #include "UI/VTDamageTextWidgetComponent.h"
 
 // Sets default values
 AVTCharacterBase::AVTCharacterBase(const class FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<UGSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UVTCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -46,7 +46,7 @@ bool AVTCharacterBase::IsAlive() const
 	return GetHealth() > 0.0f;
 }
 
-int32 AVTCharacterBase::GetAbilityLevel(EGSAbilityInputID AbilityID) const
+int32 AVTCharacterBase::GetAbilityLevel(EVTAbilityInputID AbilityID) const
 {
 	return 1;
 }
@@ -250,7 +250,7 @@ void AVTCharacterBase::AddCharacterAbilities()
 		return;
 	}
 
-	for (TSubclassOf<UGSGameplayAbility>& StartupAbility : CharacterAbilities)
+	for (TSubclassOf<UVTGameplayAbility>& StartupAbility : CharacterAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(
 			FGameplayAbilitySpec(StartupAbility, GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityID), static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));

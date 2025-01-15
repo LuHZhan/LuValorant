@@ -1,20 +1,20 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/AttributeSets/GSAttributeSetBase.h"
+#include "..\..\..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
 #include "Characters/VTCharacterBase.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
-#include "Player/GSPlayerController.h"
+#include "Player/VTPlayerController.h"
 
-UGSAttributeSetBase::UGSAttributeSetBase()
+UVTAttributeSetBase::UVTAttributeSetBase()
 {
 	// Cache tags
 	HeadShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.HeadShot"));
 }
 
-void UGSAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+void UVTAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	// This is called whenever attributes change, so for max health/mana we want to scale the current totals to match
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -39,7 +39,7 @@ void UGSAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute
 	}
 }
 
-void UGSAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+void UVTAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
 
@@ -139,7 +139,7 @@ void UGSAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 				// Show damage number for the Source player unless it was self damage
 				if (SourceActor != TargetActor)
 				{
-					AGSPlayerController* PC = Cast<AGSPlayerController>(SourceController);
+					AVTPlayerController* PC = Cast<AVTPlayerController>(SourceController);
 					if (PC)
 					{
 						FGameplayTagContainer DamageNumberTags;
@@ -169,12 +169,12 @@ void UGSAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 						FGameplayModifierInfo& InfoXP = GEBounty->Modifiers[Idx];
 						InfoXP.ModifierMagnitude = FScalableFloat(GetXPBounty());
 						InfoXP.ModifierOp = EGameplayModOp::Additive;
-						InfoXP.Attribute = UGSAttributeSetBase::GetXPAttribute();
+						InfoXP.Attribute = UVTAttributeSetBase::GetXPAttribute();
 
 						FGameplayModifierInfo& InfoGold = GEBounty->Modifiers[Idx + 1];
 						InfoGold.ModifierMagnitude = FScalableFloat(GetGoldBounty());
 						InfoGold.ModifierOp = EGameplayModOp::Additive;
-						InfoGold.Attribute = UGSAttributeSetBase::GetGoldAttribute();
+						InfoGold.Attribute = UVTAttributeSetBase::GetGoldAttribute();
 
 						Source->ApplyGameplayEffectToSelf(GEBounty, 1.0f, Source->MakeEffectContext());
 					}
@@ -205,32 +205,32 @@ void UGSAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 	}
 }
 
-void UGSAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UVTAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Health, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, HealthRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Mana, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, MaxMana, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, ManaRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Stamina, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, MaxStamina, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, StaminaRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Shield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, MaxShield, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, ShieldRegenRate, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Armor, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, MoveSpeed, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, CharacterLevel, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, XP, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, XPBounty, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, Gold, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UGSAttributeSetBase, GoldBounty, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Health, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, MaxHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, HealthRegenRate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Mana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, MaxMana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, ManaRegenRate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Stamina, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, MaxStamina, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, StaminaRegenRate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Shield, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, MaxShield, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, ShieldRegenRate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Armor, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, MoveSpeed, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, CharacterLevel, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, XP, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, XPBounty, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, Gold, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, GoldBounty, COND_None, REPNOTIFY_Always);
 }
 
-void UGSAttributeSetBase::AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue, const FGameplayAttribute& AffectedAttributeProperty)
+void UVTAttributeSetBase::AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue, const FGameplayAttribute& AffectedAttributeProperty)
 {
 	UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent();
 	const float CurrentMaxValue = MaxAttribute.GetCurrentValue();
@@ -244,97 +244,97 @@ void UGSAttributeSetBase::AdjustAttributeForMaxChange(FGameplayAttributeData& Af
 	}
 }
 
-void UGSAttributeSetBase::OnRep_Health(const FGameplayAttributeData& OldHealth)
+void UVTAttributeSetBase::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Health, OldHealth);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Health, OldHealth);
 }
 
-void UGSAttributeSetBase::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
+void UVTAttributeSetBase::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, MaxHealth, OldMaxHealth);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, MaxHealth, OldMaxHealth);
 }
 
-void UGSAttributeSetBase::OnRep_HealthRegenRate(const FGameplayAttributeData& OldHealthRegenRate)
+void UVTAttributeSetBase::OnRep_HealthRegenRate(const FGameplayAttributeData& OldHealthRegenRate)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, HealthRegenRate, OldHealthRegenRate);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, HealthRegenRate, OldHealthRegenRate);
 }
 
-void UGSAttributeSetBase::OnRep_Mana(const FGameplayAttributeData& OldMana)
+void UVTAttributeSetBase::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Mana, OldMana);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Mana, OldMana);
 }
 
-void UGSAttributeSetBase::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)
+void UVTAttributeSetBase::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, MaxMana, OldMaxMana);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, MaxMana, OldMaxMana);
 }
 
-void UGSAttributeSetBase::OnRep_ManaRegenRate(const FGameplayAttributeData& OldManaRegenRate)
+void UVTAttributeSetBase::OnRep_ManaRegenRate(const FGameplayAttributeData& OldManaRegenRate)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, ManaRegenRate, OldManaRegenRate);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, ManaRegenRate, OldManaRegenRate);
 }
 
-void UGSAttributeSetBase::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
+void UVTAttributeSetBase::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Stamina, OldStamina);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Stamina, OldStamina);
 }
 
-void UGSAttributeSetBase::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina)
+void UVTAttributeSetBase::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, MaxStamina, OldMaxStamina);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, MaxStamina, OldMaxStamina);
 }
 
-void UGSAttributeSetBase::OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate)
+void UVTAttributeSetBase::OnRep_StaminaRegenRate(const FGameplayAttributeData& OldStaminaRegenRate)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, StaminaRegenRate, OldStaminaRegenRate);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, StaminaRegenRate, OldStaminaRegenRate);
 }
 
-void UGSAttributeSetBase::OnRep_Shield(const FGameplayAttributeData& OldShield)
+void UVTAttributeSetBase::OnRep_Shield(const FGameplayAttributeData& OldShield)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Shield, OldShield);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Shield, OldShield);
 }
 
-void UGSAttributeSetBase::OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield)
+void UVTAttributeSetBase::OnRep_MaxShield(const FGameplayAttributeData& OldMaxShield)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, MaxShield, OldMaxShield);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, MaxShield, OldMaxShield);
 }
 
-void UGSAttributeSetBase::OnRep_ShieldRegenRate(const FGameplayAttributeData& OldShieldRegenRate)
+void UVTAttributeSetBase::OnRep_ShieldRegenRate(const FGameplayAttributeData& OldShieldRegenRate)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, ShieldRegenRate, OldShieldRegenRate);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, ShieldRegenRate, OldShieldRegenRate);
 }
 
-void UGSAttributeSetBase::OnRep_Armor(const FGameplayAttributeData& OldArmor)
+void UVTAttributeSetBase::OnRep_Armor(const FGameplayAttributeData& OldArmor)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Armor, OldArmor);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Armor, OldArmor);
 }
 
-void UGSAttributeSetBase::OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed)
+void UVTAttributeSetBase::OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, MoveSpeed, OldMoveSpeed);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, MoveSpeed, OldMoveSpeed);
 }
 
-void UGSAttributeSetBase::OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel)
+void UVTAttributeSetBase::OnRep_CharacterLevel(const FGameplayAttributeData& OldCharacterLevel)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, CharacterLevel, OldCharacterLevel);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, CharacterLevel, OldCharacterLevel);
 }
 
-void UGSAttributeSetBase::OnRep_XP(const FGameplayAttributeData& OldXP)
+void UVTAttributeSetBase::OnRep_XP(const FGameplayAttributeData& OldXP)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, XP, OldXP);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, XP, OldXP);
 }
 
-void UGSAttributeSetBase::OnRep_XPBounty(const FGameplayAttributeData& OldXPBounty)
+void UVTAttributeSetBase::OnRep_XPBounty(const FGameplayAttributeData& OldXPBounty)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, XPBounty, OldXPBounty);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, XPBounty, OldXPBounty);
 }
 
-void UGSAttributeSetBase::OnRep_Gold(const FGameplayAttributeData& OldGold)
+void UVTAttributeSetBase::OnRep_Gold(const FGameplayAttributeData& OldGold)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, Gold, OldGold);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, Gold, OldGold);
 }
 
-void UGSAttributeSetBase::OnRep_GoldBounty(const FGameplayAttributeData& OldGoldBounty)
+void UVTAttributeSetBase::OnRep_GoldBounty(const FGameplayAttributeData& OldGoldBounty)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UGSAttributeSetBase, GoldBounty, OldGoldBounty);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVTAttributeSetBase, GoldBounty, OldGoldBounty);
 }
