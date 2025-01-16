@@ -3,10 +3,10 @@
 
 #include "Weapons/VTWeapon.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
-#include "Characters/Abilities/GSGATA_LineTrace.h"
-#include "Characters/Abilities/GSGATA_SphereTrace.h"
+#include "Characters/Abilities/VTGATA_LineTrace.h"
+#include "Characters/Abilities/VTGATA_SphereTrace.h"
 #include "Characters/Heroes/VTHeroCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -346,7 +346,7 @@ void AVTWeapon::SetMaxSecondaryClipAmmo(int32 NewMaxSecondaryClipAmmo)
 	OnMaxSecondaryClipAmmoChanged.Broadcast(OldMaxSecondaryClipAmmo, MaxSecondaryClipAmmo);
 }
 
-TSubclassOf<UGSHUDReticle> AVTWeapon::GetPrimaryHUDReticleClass() const
+TSubclassOf<UVTHUDReticle> AVTWeapon::GetPrimaryHUDReticleClass() const
 {
 	return PrimaryHUDReticleClass;
 }
@@ -376,26 +376,26 @@ FText AVTWeapon::GetDefaultStatusText() const
 	return DefaultStatusText;
 }
 
-AGSGATA_LineTrace* AVTWeapon::GetLineTraceTargetActor()
+AVTGATA_LineTrace* AVTWeapon::GetLineTraceTargetActor()
 {
 	if (LineTraceTargetActor)
 	{
 		return LineTraceTargetActor;
 	}
 
-	LineTraceTargetActor = GetWorld()->SpawnActor<AGSGATA_LineTrace>();
+	LineTraceTargetActor = GetWorld()->SpawnActor<AVTGATA_LineTrace>();
 	LineTraceTargetActor->SetOwner(this);
 	return LineTraceTargetActor;
 }
 
-AGSGATA_SphereTrace* AVTWeapon::GetSphereTraceTargetActor()
+AVTGATA_SphereTrace* AVTWeapon::GetSphereTraceTargetActor()
 {
 	if (SphereTraceTargetActor)
 	{
 		return SphereTraceTargetActor;
 	}
 
-	SphereTraceTargetActor = GetWorld()->SpawnActor<AGSGATA_SphereTrace>();
+	SphereTraceTargetActor = GetWorld()->SpawnActor<AVTGATA_SphereTrace>();
 	SphereTraceTargetActor->SetOwner(this);
 	return SphereTraceTargetActor;
 }

@@ -5,13 +5,12 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "VTAbilityTypes.h"
-#include "GASShooter/GASShooter.h"
 #include "VTGameplayAbility.generated.h"
 
 class USkeletalMeshComponent;
 
 USTRUCT()
-struct GASSHOOTER_API FAbilityMeshMontage
+struct LUGAMEPLAYFRAME_API FAbilityMeshMontage
 {
 	GENERATED_BODY()
 
@@ -36,7 +35,7 @@ public:
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTGameplayAbility : public UGameplayAbility
+class LUGAMEPLAYFRAME_API UVTGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 
@@ -132,7 +131,7 @@ public:
 	virtual void GSApplyCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const {};
 
 	UFUNCTION(BlueprintCallable, Category = "Ability")
-	virtual void SetHUDReticle(TSubclassOf<class UGSHUDReticle> ReticleClass);
+	virtual void SetHUDReticle(TSubclassOf<class UVTHUDReticle> ReticleClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	virtual void ResetHUDReticle();

@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API AVTHeroAIController : public AAIController
+class LUGAMEPLAYFRAME_API AVTHeroAIController : public AAIController
 {
 	GENERATED_BODY()
 	

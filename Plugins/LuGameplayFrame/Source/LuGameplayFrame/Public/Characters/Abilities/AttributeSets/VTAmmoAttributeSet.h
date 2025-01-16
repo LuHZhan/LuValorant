@@ -18,7 +18,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTAmmoAttributeSet : public UAttributeSet
+class LUGAMEPLAYFRAME_API UVTAmmoAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 

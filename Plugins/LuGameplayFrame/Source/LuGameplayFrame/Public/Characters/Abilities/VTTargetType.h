@@ -17,7 +17,7 @@ struct FGameplayEventData;
  * Target Class
  */
 UCLASS(Blueprintable, meta = (ShowWorldContextPin))
-class GASSHOOTER_API UVTTargetType : public UObject
+class LUGAMEPLAYFRAME_API UVTTargetType : public UObject
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ public:
 
 /** Trivial Target：使用Owner */
 UCLASS(NotBlueprintable)
-class GASSHOOTER_API UVTTargetType_UseOwner : public UVTTargetType
+class LUGAMEPLAYFRAME_API UVTTargetType_UseOwner : public UVTTargetType
 {
 	GENERATED_BODY()
 
@@ -44,7 +44,7 @@ public:
 
 /** Event Trivial Target：从Event Data获取Target */
 UCLASS(NotBlueprintable)
-class GASSHOOTER_API UVTTargetType_UseEventData : public UVTTargetType
+class LUGAMEPLAYFRAME_API UVTTargetType_UseEventData : public UVTTargetType
 {
 	GENERATED_BODY()
 

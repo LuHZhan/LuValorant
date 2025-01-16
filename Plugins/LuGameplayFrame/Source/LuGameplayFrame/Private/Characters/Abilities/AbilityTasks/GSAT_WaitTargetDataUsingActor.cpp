@@ -3,7 +3,7 @@
 
 #include "Characters/Abilities/AbilityTasks/GSAT_WaitTargetDataUsingActor.h"
 #include "AbilitySystemComponent.h"
-#include "Characters/Abilities/GSGATA_Trace.h"
+#include "Characters/Abilities/VTGATA_Trace.h"
 
 UGSAT_WaitTargetDataUsingActor::UGSAT_WaitTargetDataUsingActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -240,7 +240,7 @@ void UGSAT_WaitTargetDataUsingActor::OnDestroy(bool AbilityEnded)
 {
 	if (TargetActor)
 	{
-		AGSGATA_Trace* TraceTargetActor = Cast<AGSGATA_Trace>(TargetActor);
+		AVTGATA_Trace* TraceTargetActor = Cast<AVTGATA_Trace>(TargetActor);
 		if (TraceTargetActor)
 		{
 			TraceTargetActor->StopTargeting();

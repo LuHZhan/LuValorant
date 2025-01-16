@@ -48,7 +48,7 @@ public:
 * 关于复制到模拟客户端的蒙太奇的数据。
 */
 USTRUCT()
-struct GASSHOOTER_API FGameplayAbilityRepAnimMontageForMesh
+struct LUGAMEPLAYFRAME_API FGameplayAbilityRepAnimMontageForMesh
 {
 	GENERATED_BODY();
 
@@ -73,7 +73,7 @@ public:
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTAbilitySystemComponent : public UAbilitySystemComponent
+class LUGAMEPLAYFRAME_API UVTAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 	

@@ -1,7 +1,7 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSDamageExecutionCalc.h"
+#include "Characters/Abilities/VTDamageExecutionCalc.h"
 #include "..\..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 
@@ -31,7 +31,7 @@ static const GSDamageStatics& DamageStatics()
 	return DStatics;
 }
 
-UGSDamageExecutionCalc::UGSDamageExecutionCalc()
+UVTDamageExecutionCalc::UVTDamageExecutionCalc()
 {
 	HeadShotMultiplier = 1.5f;
 
@@ -39,7 +39,7 @@ UGSDamageExecutionCalc::UGSDamageExecutionCalc()
 	RelevantAttributesToCapture.Add(DamageStatics().ArmorDef);
 }
 
-void UGSDamageExecutionCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
+void UVTDamageExecutionCalc::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	UAbilitySystemComponent* TargetAbilitySystemComponent = ExecutionParams.GetTargetAbilitySystemComponent();
 	UAbilitySystemComponent* SourceAbilitySystemComponent = ExecutionParams.GetSourceAbilitySystemComponent();

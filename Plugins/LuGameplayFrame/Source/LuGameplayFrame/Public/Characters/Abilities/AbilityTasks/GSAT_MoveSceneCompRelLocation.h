@@ -16,7 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMoveSceneCompRelLocationDelegate);
  * This is only suitable for cosmetic changes for the local player.
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_MoveSceneCompRelLocation : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_MoveSceneCompRelLocation : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 	

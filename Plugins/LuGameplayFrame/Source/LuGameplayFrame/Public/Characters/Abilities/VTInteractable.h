@@ -17,7 +17,7 @@ class UVTInteractable : public UInterface
 /**
  * Interface for Actors that can be interacted with through the GameplayAbilitySystem.
  */
-class GASSHOOTER_API IVTInteractable
+class LUGAMEPLAYFRAME_API IVTInteractable
 {
 	GENERATED_BODY()
 

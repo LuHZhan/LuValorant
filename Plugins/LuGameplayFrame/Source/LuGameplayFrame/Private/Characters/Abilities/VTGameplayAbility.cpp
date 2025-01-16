@@ -4,7 +4,7 @@
 #include "Characters/Abilities/VTGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/VTTargetType.h"
 #include "Characters/VTCharacterBase.h"
 #include "Characters/Heroes/VTHeroCharacter.h"
@@ -209,7 +209,7 @@ void UVTGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 }
 
-void UVTGameplayAbility::SetHUDReticle(TSubclassOf<UGSHUDReticle> ReticleClass)
+void UVTGameplayAbility::SetHUDReticle(TSubclassOf<UVTHUDReticle> ReticleClass)
 {
 	AVTPlayerController* PC = Cast<AVTPlayerController>(CurrentActorInfo->PlayerController);
 	if (PC)

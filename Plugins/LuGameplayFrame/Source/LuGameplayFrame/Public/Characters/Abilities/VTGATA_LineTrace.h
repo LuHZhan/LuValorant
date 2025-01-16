@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Characters/Abilities/GSGATA_Trace.h"
+#include "Characters/Abilities/VTGATA_Trace.h"
 #include "CollisionQueryParams.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "WorldCollision.h"
-#include "GSGATA_LineTrace.generated.h"
+#include "VTGATA_LineTrace.generated.h"
 
 /**
  * Reusable, configurable line trace TargetActor.
@@ -16,12 +16,12 @@
  * one will destroy the TargetActor.
  */
 UCLASS()
-class GASSHOOTER_API AGSGATA_LineTrace : public AGSGATA_Trace
+class LUGAMEPLAYFRAME_API AVTGATA_LineTrace : public AVTGATA_Trace
 {
 	GENERATED_BODY()
 
 public:
-	AGSGATA_LineTrace();
+	AVTGATA_LineTrace();
 
 	/**
 	* Configure the TargetActor for use. This TargetActor could be used in multiple abilities and there's no guarantee

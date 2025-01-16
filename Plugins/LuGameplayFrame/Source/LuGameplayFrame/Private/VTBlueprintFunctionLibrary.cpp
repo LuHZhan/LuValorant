@@ -116,7 +116,7 @@ TArray<FActiveGameplayEffectHandle> UVTBlueprintFunctionLibrary::ApplyExternalEf
 
 FGameplayAbilityTargetDataHandle UVTBlueprintFunctionLibrary::EffectContextGetTargetData(FGameplayEffectContextHandle EffectContextHandle)
 {
-	FGSGameplayEffectContext* EffectContext = static_cast<FGSGameplayEffectContext*>(EffectContextHandle.Get());
+	FVTGameplayEffectContext* EffectContext = static_cast<FVTGameplayEffectContext*>(EffectContextHandle.Get());
 	
 	if (EffectContext)
 	{
@@ -128,7 +128,7 @@ FGameplayAbilityTargetDataHandle UVTBlueprintFunctionLibrary::EffectContextGetTa
 
 void UVTBlueprintFunctionLibrary::EffectContextAddTargetData(FGameplayEffectContextHandle EffectContextHandle, const FGameplayAbilityTargetDataHandle& TargetData)
 {
-	FGSGameplayEffectContext* EffectContext = static_cast<FGSGameplayEffectContext*>(EffectContextHandle.Get());
+	FVTGameplayEffectContext* EffectContext = static_cast<FVTGameplayEffectContext*>(EffectContextHandle.Get());
 
 	if (EffectContext)
 	{

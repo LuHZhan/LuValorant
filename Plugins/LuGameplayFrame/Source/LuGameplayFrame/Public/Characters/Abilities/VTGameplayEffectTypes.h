@@ -4,7 +4,7 @@
 
 #include "GameplayEffectTypes.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
-#include "GSGameplayEffectTypes.generated.h"
+#include "VTGameplayEffectTypes.generated.h"
 
 /**
  * Data structure that stores an instigator and related data, such as positions and targets
@@ -12,7 +12,7 @@
  * It is passed throughout effect execution so it is a great place to track transient information about an execution
  */
 USTRUCT()
-struct GASSHOOTER_API FGSGameplayEffectContext : public FGameplayEffectContext
+struct LUGAMEPLAYFRAME_API FVTGameplayEffectContext : public FGameplayEffectContext
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -34,12 +34,12 @@ public:
 
 	virtual UScriptStruct* GetScriptStruct() const override
 	{
-		return FGSGameplayEffectContext::StaticStruct();
+		return FVTGameplayEffectContext::StaticStruct();
 	}
 
-	virtual FGSGameplayEffectContext* Duplicate() const override
+	virtual FVTGameplayEffectContext* Duplicate() const override
 	{
-		FGSGameplayEffectContext* NewContext = new FGSGameplayEffectContext();
+		FVTGameplayEffectContext* NewContext = new FVTGameplayEffectContext();
 		*NewContext = *this;
 		NewContext->AddActors(Actors);
 		if (GetHitResult())
@@ -59,7 +59,7 @@ protected:
 };
 
 template<>
-struct TStructOpsTypeTraits<FGSGameplayEffectContext> : public TStructOpsTypeTraitsBase2<FGSGameplayEffectContext>
+struct TStructOpsTypeTraits<FVTGameplayEffectContext> : public TStructOpsTypeTraitsBase2<FVTGameplayEffectContext>
 {
 	enum
 	{

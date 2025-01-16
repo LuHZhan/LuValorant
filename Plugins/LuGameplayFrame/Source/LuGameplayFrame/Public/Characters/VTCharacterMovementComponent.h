@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTCharacterMovementComponent : public UCharacterMovementComponent
+class LUGAMEPLAYFRAME_API UVTCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 	

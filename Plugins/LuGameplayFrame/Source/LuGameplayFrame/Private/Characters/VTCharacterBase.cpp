@@ -8,7 +8,7 @@
 
 #include "..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
 #include "Characters/VTCharacterMovementComponent.h"
 #include "UI/VTDamageTextWidgetComponent.h"

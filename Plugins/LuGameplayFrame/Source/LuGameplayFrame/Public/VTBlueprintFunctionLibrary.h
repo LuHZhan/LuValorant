@@ -7,7 +7,7 @@
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 #include "Characters\Abilities\VTAbilityTypes.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
-#include "Characters/Abilities/GSGameplayEffectTypes.h"
+#include "Characters\Abilities\VTGameplayEffectTypes.h"
 #include "VTBlueprintFunctionLibrary.generated.h"
 
 
@@ -15,7 +15,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
+class LUGAMEPLAYFRAME_API UVTBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	

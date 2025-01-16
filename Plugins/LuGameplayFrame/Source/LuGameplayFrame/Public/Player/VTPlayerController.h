@@ -13,7 +13,7 @@ class UPaperSprite;
  * 
  */
 UCLASS()
-class GASSHOOTER_API AVTPlayerController : public APlayerController
+class LUGAMEPLAYFRAME_API AVTPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
@@ -46,7 +46,7 @@ public:
 	void SetSecondaryReserveAmmo(int32 SecondaryReserveAmmo);
 
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|UI")
-	void SetHUDReticle(TSubclassOf<class UGSHUDReticle> ReticleClass);
+	void SetHUDReticle(TSubclassOf<class UVTHUDReticle> ReticleClass);
 
 
 	UFUNCTION(Client, Reliable, WithValidation)

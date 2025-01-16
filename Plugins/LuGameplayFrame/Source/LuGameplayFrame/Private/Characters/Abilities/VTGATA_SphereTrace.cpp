@@ -1,17 +1,17 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSGATA_SphereTrace.h"
+#include "Characters/Abilities/VTGATA_SphereTrace.h"
 #include "WorldCollision.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PlayerController.h"
 
-AGSGATA_SphereTrace::AGSGATA_SphereTrace()
+AVTGATA_SphereTrace::AVTGATA_SphereTrace()
 {
 	TraceSphereRadius = 100.0f;
 }
 
-void AGSGATA_SphereTrace::Configure(
+void AVTGATA_SphereTrace::Configure(
 	const FGameplayAbilityTargetingLocationInfo& InStartLocation,
 	FGameplayTag InAimingTag,
 	FGameplayTag InAimingRemovalTag,
@@ -64,7 +64,7 @@ void AGSGATA_SphereTrace::Configure(
 	}
 }
 
-void AGSGATA_SphereTrace::SphereTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, float Radius, FName ProfileName, const FCollisionQueryParams Params)
+void AVTGATA_SphereTrace::SphereTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, float Radius, FName ProfileName, const FCollisionQueryParams Params)
 {
 	check(World);
 
@@ -94,12 +94,12 @@ void AGSGATA_SphereTrace::SphereTraceWithFilter(TArray<FHitResult>& OutHitResult
 	return;
 }
 
-void AGSGATA_SphereTrace::DoTrace(TArray<FHitResult>& HitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
+void AVTGATA_SphereTrace::DoTrace(TArray<FHitResult>& HitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
 {
 	SphereTraceWithFilter(HitResults, World, FilterHandle, Start, End, TraceSphereRadius, ProfileName, Params);
 }
 
-void AGSGATA_SphereTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDebugTrace::Type DrawDebugType, float Duration)
+void AVTGATA_SphereTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDebugTrace::Type DrawDebugType, float Duration)
 {
 #if ENABLE_DRAW_DEBUG
 	if (bDebug)
@@ -124,7 +124,7 @@ void AGSGATA_SphereTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDe
 
 #if ENABLE_DRAW_DEBUG
 // Copied from KismetTraceUtils.cpp
-void AGSGATA_SphereTrace::DrawDebugSweptSphere(const UWorld* InWorld, FVector const& Start, FVector const& End, float Radius, FColor const& Color, bool bPersistentLines, float LifeTime, uint8 DepthPriority)
+void AVTGATA_SphereTrace::DrawDebugSweptSphere(const UWorld* InWorld, FVector const& Start, FVector const& End, float Radius, FColor const& Color, bool bPersistentLines, float LifeTime, uint8 DepthPriority)
 {
 	FVector const TraceVec = End - Start;
 	float const Dist = TraceVec.Size();
@@ -136,7 +136,7 @@ void AGSGATA_SphereTrace::DrawDebugSweptSphere(const UWorld* InWorld, FVector co
 	::DrawDebugCapsule(InWorld, Center, HalfHeight, Radius, CapsuleRot, Color, bPersistentLines, LifeTime, DepthPriority);
 }
 
-void AGSGATA_SphereTrace::DrawDebugSphereTraceMulti(const UWorld* World, const FVector& Start, const FVector& End, float Radius, EDrawDebugTrace::Type DrawDebugType, bool bHit, const TArray<FHitResult>& OutHits, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime)
+void AVTGATA_SphereTrace::DrawDebugSphereTraceMulti(const UWorld* World, const FVector& Start, const FVector& End, float Radius, EDrawDebugTrace::Type DrawDebugType, bool bHit, const TArray<FHitResult>& OutHits, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime)
 {
 	if (DrawDebugType != EDrawDebugTrace::None)
 	{

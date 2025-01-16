@@ -18,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGSPlayMontageForMeshAndWaitForEven
  * It is expected that each game will have a set of game-specific tasks to do what they want
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_PlayMontageForMeshAndWaitForEvent : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_PlayMontageForMeshAndWaitForEvent : public UAbilityTask
 {
 	GENERATED_BODY()
 	

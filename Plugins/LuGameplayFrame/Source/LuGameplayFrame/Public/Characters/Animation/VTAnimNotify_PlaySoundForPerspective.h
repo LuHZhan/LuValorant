@@ -10,7 +10,7 @@
  * AnimNotify to play a sound if the character is in the matching perspective (1st or 3rd).
  */
 UCLASS(meta = (DisplayName = "Play Sound For Perspective"))
-class GASSHOOTER_API UVTAnimNotify_PlaySoundForPerspective : public UAnimNotify_PlaySound
+class LUGAMEPLAYFRAME_API UVTAnimNotify_PlaySoundForPerspective : public UAnimNotify_PlaySound
 {
 	GENERATED_BODY()
 

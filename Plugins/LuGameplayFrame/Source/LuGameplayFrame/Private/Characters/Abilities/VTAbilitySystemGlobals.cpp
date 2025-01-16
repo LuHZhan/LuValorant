@@ -1,20 +1,20 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
-#include "Characters/Abilities/GSGameplayEffectTypes.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
+#include "..\..\..\Public\Characters\Abilities\VTGameplayEffectTypes.h"
 
-UGSAbilitySystemGlobals::UGSAbilitySystemGlobals()
+UVTAbilitySystemGlobals::UVTAbilitySystemGlobals()
 {
 
 }
 
-FGameplayEffectContext* UGSAbilitySystemGlobals::AllocGameplayEffectContext() const
+FGameplayEffectContext* UVTAbilitySystemGlobals::AllocGameplayEffectContext() const
 {
-	return new FGSGameplayEffectContext();
+	return new FVTGameplayEffectContext();
 }
 
-void UGSAbilitySystemGlobals::InitGlobalTags()
+void UVTAbilitySystemGlobals::InitGlobalTags()
 {
 	Super::InitGlobalTags();
 

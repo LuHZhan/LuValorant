@@ -7,12 +7,13 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "GameplayTagContainer.h"
+#include "Characters/Abilities/VTAbilityTypes.h"
 #include "VTWeapon.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponAmmoChangedDelegate, int32, OldValue, int32, NewValue);
 
-class AGSGATA_LineTrace;
-class AGSGATA_SphereTrace;
+class AVTGATA_LineTrace;
+class AVTGATA_SphereTrace;
 class AVTHeroCharacter;
 class UAnimMontage;
 class UVTAbilitySystemComponent;
@@ -21,7 +22,7 @@ class UPaperSprite;
 class USkeletalMeshComponent;
 
 UCLASS(Blueprintable, BlueprintType)
-class GASSHOOTER_API AVTWeapon : public AActor, public IAbilitySystemInterface
+class LUGAMEPLAYFRAME_API AVTWeapon : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -145,7 +146,7 @@ public:
 	virtual void SetMaxSecondaryClipAmmo(int32 NewMaxSecondaryClipAmmo);
 
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSWeapon")
-	TSubclassOf<class UGSHUDReticle> GetPrimaryHUDReticleClass() const;
+	TSubclassOf<class UVTHUDReticle> GetPrimaryHUDReticleClass() const;
 
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|GSWeapon")
 	virtual bool HasInfiniteAmmo() const;
@@ -164,11 +165,11 @@ public:
 
 	// Getter for LineTraceTargetActor. Spawns it if it doesn't exist yet.
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AGSGATA_LineTrace* GetLineTraceTargetActor();
+	AVTGATA_LineTrace* GetLineTraceTargetActor();
 
 	// Getter for SphereTraceTargetActor. Spawns it if it doesn't exist yet.
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AGSGATA_SphereTrace* GetSphereTraceTargetActor();
+	AVTGATA_SphereTrace* GetSphereTraceTargetActor();
 
 protected:
 	UPROPERTY()
@@ -192,13 +193,13 @@ protected:
 	bool bInfiniteAmmo;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
-	TSubclassOf<class UGSHUDReticle> PrimaryHUDReticleClass;
+	TSubclassOf<class UVTHUDReticle> PrimaryHUDReticleClass;
 
 	UPROPERTY()
-	AGSGATA_LineTrace* LineTraceTargetActor;
+	AVTGATA_LineTrace* LineTraceTargetActor;
 
 	UPROPERTY()
-	AGSGATA_SphereTrace* SphereTraceTargetActor;
+	AVTGATA_SphereTrace* SphereTraceTargetActor;
 
 	// Collision capsule for when weapon is in pickup mode
 	UPROPERTY(VisibleAnywhere)

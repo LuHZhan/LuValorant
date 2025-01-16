@@ -138,7 +138,7 @@ void AVTPlayerController::SetSecondaryReserveAmmo(int32 SecondaryReserveAmmo)
 	}
 }
 
-void AVTPlayerController::SetHUDReticle(TSubclassOf<UGSHUDReticle> ReticleClass)
+void AVTPlayerController::SetHUDReticle(TSubclassOf<UVTHUDReticle> ReticleClass)
 {
 	// !GetWorld()->bIsTearingDown Stops an error when quitting PIE while targeting when the EndAbility resets the HUD reticle
 	if (UIHUDWidget && GetWorld() && !GetWorld()->bIsTearingDown)

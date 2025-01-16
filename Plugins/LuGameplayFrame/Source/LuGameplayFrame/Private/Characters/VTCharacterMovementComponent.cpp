@@ -3,7 +3,7 @@
 
 #include "Characters/VTCharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/VTCharacterBase.h"
 #include "GameplayTagContainer.h"
 

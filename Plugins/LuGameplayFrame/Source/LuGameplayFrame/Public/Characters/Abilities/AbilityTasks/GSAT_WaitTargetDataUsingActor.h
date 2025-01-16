@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitTargetDataUsingActorDelegate, c
  * are not virtual. Therefore this is a total rewrite of it to add bCreateKeyIfNotValidForMorePredicting functionality.
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 

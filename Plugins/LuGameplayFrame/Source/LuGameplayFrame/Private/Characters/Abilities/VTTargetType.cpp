@@ -9,7 +9,7 @@ void UVTTargetType::GetTargets_Implementation(AVTCharacterBase* TargetingCharact
 	return;
 }
 
-void UGSTargetType_UseOwner::GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const
+void UVTTargetType_UseOwner::GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const
 {
 	OutActors.Add(TargetingCharacter);
 }

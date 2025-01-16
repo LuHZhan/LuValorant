@@ -26,7 +26,7 @@ enum class EVTHeroWeaponState : uint8
 };
 
 USTRUCT()
-struct GASSHOOTER_API FVTHeroInventory
+struct LUGAMEPLAYFRAME_API FVTHeroInventory
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -46,7 +46,7 @@ struct GASSHOOTER_API FVTHeroInventory
  * A player or AI controlled hero character.
  */
 UCLASS()
-class GASSHOOTER_API AVTHeroCharacter : public AVTCharacterBase, public IVTInteractable
+class LUGAMEPLAYFRAME_API AVTHeroCharacter : public AVTCharacterBase, public IVTInteractable
 {
 	GENERATED_BODY()
 	

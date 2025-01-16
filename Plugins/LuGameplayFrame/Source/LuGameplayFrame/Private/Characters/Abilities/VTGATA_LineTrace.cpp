@@ -1,15 +1,15 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSGATA_LineTrace.h"
+#include "Characters/Abilities/VTGATA_LineTrace.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PlayerController.h"
 
-AGSGATA_LineTrace::AGSGATA_LineTrace()
+AVTGATA_LineTrace::AVTGATA_LineTrace()
 {
 }
 
-void AGSGATA_LineTrace::Configure(
+void AVTGATA_LineTrace::Configure(
 	const FGameplayAbilityTargetingLocationInfo& InStartLocation,
 	FGameplayTag InAimingTag,
 	FGameplayTag InAimingRemovalTag,
@@ -60,12 +60,12 @@ void AGSGATA_LineTrace::Configure(
 	}
 }
 
-void AGSGATA_LineTrace::DoTrace(TArray<FHitResult>& HitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
+void AVTGATA_LineTrace::DoTrace(TArray<FHitResult>& HitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
 {
 	LineTraceWithFilter(HitResults, World, FilterHandle, Start, End, ProfileName, Params);
 }
 
-void AGSGATA_LineTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDebugTrace::Type DrawDebugType, float Duration)
+void AVTGATA_LineTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDebugTrace::Type DrawDebugType, float Duration)
 {
 #if ENABLE_DRAW_DEBUG
 	if (bDebug)
@@ -90,7 +90,7 @@ void AGSGATA_LineTrace::ShowDebugTrace(TArray<FHitResult>& HitResults, EDrawDebu
 
 #if ENABLE_DRAW_DEBUG
 // Copied from KismetTraceUtils.cpp
-void AGSGATA_LineTrace::DrawDebugLineTraceMulti(const UWorld* World, const FVector& Start, const FVector& End, EDrawDebugTrace::Type DrawDebugType, bool bHit, const TArray<FHitResult>& OutHits, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime)
+void AVTGATA_LineTrace::DrawDebugLineTraceMulti(const UWorld* World, const FVector& Start, const FVector& End, EDrawDebugTrace::Type DrawDebugType, bool bHit, const TArray<FHitResult>& OutHits, FLinearColor TraceColor, FLinearColor TraceHitColor, float DrawTime)
 {
 	if (DrawDebugType != EDrawDebugTrace::None)
 	{

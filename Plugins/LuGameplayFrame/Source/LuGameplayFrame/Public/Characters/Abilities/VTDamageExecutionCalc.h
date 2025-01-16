@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffectExecutionCalculation.h"
-#include "GSDamageExecutionCalc.generated.h"
+#include "VTDamageExecutionCalc.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GASSHOOTER_API UGSDamageExecutionCalc : public UGameplayEffectExecutionCalculation
+class LUGAMEPLAYFRAME_API UVTDamageExecutionCalc : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
 	
 public:
-	UGSDamageExecutionCalc();
+	UVTDamageExecutionCalc();
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 

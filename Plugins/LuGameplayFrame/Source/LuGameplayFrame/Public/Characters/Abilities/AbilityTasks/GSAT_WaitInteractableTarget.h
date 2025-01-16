@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitInteractableTargetDelegate, con
  * we trace. If you only have one start location, you should make it more generic with a parameter on your AbilityTask node.
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_WaitInteractableTarget : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_WaitInteractableTarget : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 	

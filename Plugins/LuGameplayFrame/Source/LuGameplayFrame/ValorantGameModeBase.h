@@ -9,8 +9,8 @@
 /**
  * 
  */
-UCLASS()
-class GASSHOOTER_API AValorantGameModeBase : public AGameModeBase
+UCLASS(BlueprintType)
+class LUGAMEPLAYFRAME_API AValorantGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	

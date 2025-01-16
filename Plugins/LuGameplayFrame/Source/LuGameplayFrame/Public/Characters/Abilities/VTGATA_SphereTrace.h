@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Characters/Abilities/GSGATA_Trace.h"
+#include "Characters/Abilities/VTGATA_Trace.h"
 #include "CollisionQueryParams.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/CollisionProfile.h"
 #include "WorldCollision.h"
-#include "GSGATA_SphereTrace.generated.h"
+#include "VTGATA_SphereTrace.generated.h"
 
 /**
  * Reusable, configurable sphere trace TargetActor.
@@ -16,12 +16,12 @@
  * one will destroy the TargetActor.
  */
 UCLASS()
-class GASSHOOTER_API AGSGATA_SphereTrace : public AGSGATA_Trace
+class LUGAMEPLAYFRAME_API AVTGATA_SphereTrace : public AVTGATA_Trace
 {
 	GENERATED_BODY()
 	
 public:
-	AGSGATA_SphereTrace();
+	AVTGATA_SphereTrace();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ExposeOnSpawn = true), Category = "Trace")
 	float TraceSphereRadius;

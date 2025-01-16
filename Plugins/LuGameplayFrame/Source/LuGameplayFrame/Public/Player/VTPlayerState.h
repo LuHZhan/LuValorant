@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FVTOnGameplayAttributeValueChange
  * 
  */
 UCLASS()
-class GASSHOOTER_API AVTPlayerState : public APlayerState, public IAbilitySystemInterface
+class LUGAMEPLAYFRAME_API AVTPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	

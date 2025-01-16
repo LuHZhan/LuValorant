@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
-#include "GSGA_CharacterJump.generated.h"
+#include "VTGA_CharacterJump.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GASSHOOTER_API UGSGA_CharacterJump : public UVTGameplayAbility
+class LUGAMEPLAYFRAME_API UVTGA_CharacterJump : public UVTGameplayAbility
 {
 	GENERATED_BODY()
 	
 public:
-	UGSGA_CharacterJump();
+	UVTGA_CharacterJump();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

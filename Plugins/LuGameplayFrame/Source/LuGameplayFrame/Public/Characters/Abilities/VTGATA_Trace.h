@@ -9,20 +9,22 @@
 #include "Engine/CollisionProfile.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "WorldCollision.h"
-#include "GSGATA_Trace.generated.h"
+#include "VTGATA_Trace.generated.h"
 
 /**
  * Reusable, configurable trace TargetActor. Subclass with your own trace shapes.
  * Meant to be used with GSAT_WaitTargetDataUsingActor instead of the default WaitTargetData AbilityTask as the default
  * one will destroy the TargetActor.
+ * 可重用的、可配置的跟踪TargetActor。子类具有自己的跟踪形状。
+ * 意味着与GSAT_WaitTargetDataUsingActor一起使用，而不是默认的WaitTargetData AbilityTask，因为默认的会破坏TargetActor。
  */
 UCLASS()
-class GASSHOOTER_API AGSGATA_Trace : public AGameplayAbilityTargetActor
+class LUGAMEPLAYFRAME_API AVTGATA_Trace : public AGameplayAbilityTargetActor
 {
 	GENERATED_BODY()
 	
 public:
-    AGSGATA_Trace();
+    AVTGATA_Trace();
 
 	// Base targeting spread (degrees)
 	UPROPERTY(BlueprintReadWrite, Category = "Accuracy")

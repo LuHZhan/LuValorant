@@ -5,7 +5,7 @@
 #include "Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
 #include "..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Heroes/VTHeroCharacter.h"
 #include "Player/VTPlayerController.h"
 #include "UI/VTFloatingStatusBarWidget.h"

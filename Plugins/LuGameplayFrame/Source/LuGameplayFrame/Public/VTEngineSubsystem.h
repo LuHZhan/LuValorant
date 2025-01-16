@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API UVTEngineSubsystem : public UEngineSubsystem
+class LUGAMEPLAYFRAME_API UVTEngineSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 	

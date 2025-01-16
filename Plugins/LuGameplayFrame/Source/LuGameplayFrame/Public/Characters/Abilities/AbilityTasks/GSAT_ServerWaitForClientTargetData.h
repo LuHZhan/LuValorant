@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_ServerWaitForClientTargetData : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_ServerWaitForClientTargetData : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 

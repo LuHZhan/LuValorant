@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInputPressWithTagsDelegate, float, 
  * execute this task in parallel and keep its own time.
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_WaitInputPressWithTags : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_WaitInputPressWithTags : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 	

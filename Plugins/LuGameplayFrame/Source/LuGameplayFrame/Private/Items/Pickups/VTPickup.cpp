@@ -9,7 +9,7 @@
 #include "Sound/SoundCue.h"
 #include "TimerManager.h"
 
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
 #include "Characters/VTCharacterBase.h"
 

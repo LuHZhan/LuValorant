@@ -7,7 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 #include "Characters/Abilities/VTGameplayAbility.h"
-#include "GASShooter/GASShooter.h"
+// #include "GASShooter/GASShooter.h"
 #include "GameFramework/Character.h"
 
 UGSAT_PlayMontageForMeshAndWaitForEvent::UGSAT_PlayMontageForMeshAndWaitForEvent(const FObjectInitializer& ObjectInitializer)

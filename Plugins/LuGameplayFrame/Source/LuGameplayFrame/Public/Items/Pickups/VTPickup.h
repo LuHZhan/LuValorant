@@ -10,7 +10,7 @@
 class AVTCharacterBase;
 
 UCLASS()
-class GASSHOOTER_API AVTPickup : public AActor
+class LUGAMEPLAYFRAME_API AVTPickup : public AActor
 {
 	GENERATED_BODY()
 	

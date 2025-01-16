@@ -6,7 +6,7 @@
 #include "AI/VTHeroAIController.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/GSAbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
 #include "..\..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
 #include "Components/WidgetComponent.h"
@@ -331,7 +331,7 @@ bool AVTHeroCharacter::AddWeaponToInventory(AVTWeapon* NewWeapon, bool bEquipWea
 			FGameplayModifierInfo& InfoPrimaryAmmo = GEAmmo->Modifiers[Idx];
 			InfoPrimaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetPrimaryClipAmmo());
 			InfoPrimaryAmmo.ModifierOp = EGameplayModOp::Additive;
-			InfoPrimaryAmmo.Attribute = UGSAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->PrimaryAmmoType);
+			InfoPrimaryAmmo.Attribute = UVTAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->PrimaryAmmoType);
 		}
 
 		if (NewWeapon->SecondaryAmmoType != WeaponAmmoTypeNoneTag)
@@ -342,7 +342,7 @@ bool AVTHeroCharacter::AddWeaponToInventory(AVTWeapon* NewWeapon, bool bEquipWea
 			FGameplayModifierInfo& InfoSecondaryAmmo = GEAmmo->Modifiers[Idx];
 			InfoSecondaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetSecondaryClipAmmo());
 			InfoSecondaryAmmo.ModifierOp = EGameplayModOp::Additive;
-			InfoSecondaryAmmo.Attribute = UGSAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->SecondaryAmmoType);
+			InfoSecondaryAmmo.Attribute = UVTAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->SecondaryAmmoType);
 		}
 
 		if (GEAmmo->Modifiers.Num() > 0)

@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDelayOneFrameDelegate);
  * Like WaitDelay but only delays one frame (tick).
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_WaitDelayOneFrame : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_WaitDelayOneFrame : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 

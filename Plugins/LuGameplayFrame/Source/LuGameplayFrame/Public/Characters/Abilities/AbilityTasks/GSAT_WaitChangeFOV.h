@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeFOVDelegate);
  * 
  */
 UCLASS()
-class GASSHOOTER_API UGSAT_WaitChangeFOV : public UAbilityTask
+class LUGAMEPLAYFRAME_API UGSAT_WaitChangeFOV : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
 	

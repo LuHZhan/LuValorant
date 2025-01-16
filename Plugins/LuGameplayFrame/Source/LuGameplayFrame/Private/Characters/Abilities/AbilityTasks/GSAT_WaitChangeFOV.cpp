@@ -4,7 +4,7 @@
 #include "Characters/Abilities/AbilityTasks/GSAT_WaitChangeFOV.h"
 #include "Camera/CameraComponent.h"
 #include "Curves/CurveFloat.h"
-#include "GASShooter/GASShooter.h"
+// #include "GASShooter/GASShooter.h"
 
 UGSAT_WaitChangeFOV::UGSAT_WaitChangeFOV(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

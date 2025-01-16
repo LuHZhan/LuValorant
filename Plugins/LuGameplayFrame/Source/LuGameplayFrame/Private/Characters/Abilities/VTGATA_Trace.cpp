@@ -1,14 +1,14 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "Characters/Abilities/GSGATA_Trace.h"
+#include "Characters/Abilities/VTGATA_Trace.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemLog.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayAbilitySpec.h"
 
-AGSGATA_Trace::AGSGATA_Trace()
+AVTGATA_Trace::AVTGATA_Trace()
 {
 	bDestroyOnConfirmation = false;
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,7 +28,7 @@ AGSGATA_Trace::AGSGATA_Trace()
 	bUsePersistentHitResults = false;
 }
 
-void AGSGATA_Trace::ResetSpread()
+void AVTGATA_Trace::ResetSpread()
 {
 	bUseAimingSpreadMod = false;
 	BaseSpread = 0.0f;
@@ -38,7 +38,7 @@ void AGSGATA_Trace::ResetSpread()
 	CurrentTargetingSpread = 0.0f;
 }
 
-float AGSGATA_Trace::GetCurrentSpread() const
+float AVTGATA_Trace::GetCurrentSpread() const
 {
 	float FinalSpread = BaseSpread + CurrentTargetingSpread;
 
@@ -54,22 +54,22 @@ float AGSGATA_Trace::GetCurrentSpread() const
 	return FinalSpread;
 }
 
-void AGSGATA_Trace::SetStartLocation(const FGameplayAbilityTargetingLocationInfo& InStartLocation)
+void AVTGATA_Trace::SetStartLocation(const FGameplayAbilityTargetingLocationInfo& InStartLocation)
 {
 	StartLocation = InStartLocation;
 }
 
-void AGSGATA_Trace::SetShouldProduceTargetDataOnServer(bool bInShouldProduceTargetDataOnServer)
+void AVTGATA_Trace::SetShouldProduceTargetDataOnServer(bool bInShouldProduceTargetDataOnServer)
 {
 	ShouldProduceTargetDataOnServer = bInShouldProduceTargetDataOnServer;
 }
 
-void AGSGATA_Trace::SetDestroyOnConfirmation(bool bInDestroyOnConfirmation)
+void AVTGATA_Trace::SetDestroyOnConfirmation(bool bInDestroyOnConfirmation)
 {
 	bDestroyOnConfirmation = bInDestroyOnConfirmation;
 }
 
-void AGSGATA_Trace::StartTargeting(UGameplayAbility* Ability)
+void AVTGATA_Trace::StartTargeting(UGameplayAbility* Ability)
 {
 	// Don't call to Super because we can have more than one Reticle
 
@@ -96,7 +96,7 @@ void AGSGATA_Trace::StartTargeting(UGameplayAbility* Ability)
 	}
 }
 
-void AGSGATA_Trace::ConfirmTargetingAndContinue()
+void AVTGATA_Trace::ConfirmTargetingAndContinue()
 {
 	check(ShouldProduceTargetData());
 	if (SourceActor)
@@ -119,7 +119,7 @@ void AGSGATA_Trace::ConfirmTargetingAndContinue()
 	}
 }
 
-void AGSGATA_Trace::CancelTargeting()
+void AVTGATA_Trace::CancelTargeting()
 {
 	const FGameplayAbilityActorInfo* ActorInfo = (OwningAbility ? OwningAbility->GetCurrentActorInfo() : nullptr);
 	UAbilitySystemComponent* ASC = (ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr);
@@ -142,7 +142,7 @@ void AGSGATA_Trace::CancelTargeting()
 	}
 }
 
-void AGSGATA_Trace::BeginPlay()
+void AVTGATA_Trace::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -151,14 +151,14 @@ void AGSGATA_Trace::BeginPlay()
 	SetActorTickEnabled(false);
 }
 
-void AGSGATA_Trace::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AVTGATA_Trace::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	DestroyReticleActors();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void AGSGATA_Trace::Tick(float DeltaSeconds)
+void AVTGATA_Trace::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
@@ -177,7 +177,7 @@ void AGSGATA_Trace::Tick(float DeltaSeconds)
 #endif
 }
 
-void AGSGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
+void AVTGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
 {
 	check(World);
 
@@ -207,7 +207,7 @@ void AGSGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const
 	return;
 }
 
-void AGSGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollisionQueryParams Params, const FVector& TraceStart, FVector& OutTraceEnd, bool bIgnorePitch)
+void AVTGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollisionQueryParams Params, const FVector& TraceStart, FVector& OutTraceEnd, bool bIgnorePitch)
 {
 	if (!OwningAbility) // Server and launching client only
 	{
@@ -270,7 +270,7 @@ void AGSGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollis
 	OutTraceEnd = TraceStart + (ShootDir * MaxRange);
 }
 
-bool AGSGATA_Trace::ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection, FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition)
+bool AVTGATA_Trace::ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection, FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition)
 {
 	FVector CameraToCenter = AbilityCenter - CameraLocation;
 	float DotToCenter = FVector::DotProduct(CameraToCenter, CameraDirection);
@@ -289,7 +289,7 @@ bool AGSGATA_Trace::ClipCameraRayToAbilityRange(FVector CameraLocation, FVector 
 	return false;
 }
 
-void AGSGATA_Trace::StopTargeting()
+void AVTGATA_Trace::StopTargeting()
 {
 	SetActorTickEnabled(false);
 
@@ -307,7 +307,7 @@ void AGSGATA_Trace::StopTargeting()
 	}
 }
 
-FGameplayAbilityTargetDataHandle AGSGATA_Trace::MakeTargetData(const TArray<FHitResult>& HitResults) const
+FGameplayAbilityTargetDataHandle AVTGATA_Trace::MakeTargetData(const TArray<FHitResult>& HitResults) const
 {
 	FGameplayAbilityTargetDataHandle ReturnDataHandle;
 
@@ -322,7 +322,7 @@ FGameplayAbilityTargetDataHandle AGSGATA_Trace::MakeTargetData(const TArray<FHit
 	return ReturnDataHandle;
 }
 
-TArray<FHitResult> AGSGATA_Trace::PerformTrace(AActor* InSourceActor)
+TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 {
 	bool bTraceComplex = false;
 	TArray<AActor*> ActorsToIgnore;
@@ -536,7 +536,7 @@ TArray<FHitResult> AGSGATA_Trace::PerformTrace(AActor* InSourceActor)
 	return ReturnHitResults;
 }
 
-AGameplayAbilityWorldReticle* AGSGATA_Trace::SpawnReticleActor(FVector Location, FRotator Rotation)
+AGameplayAbilityWorldReticle* AVTGATA_Trace::SpawnReticleActor(FVector Location, FRotator Rotation)
 {
 	if (ReticleClass)
 	{
@@ -564,7 +564,7 @@ AGameplayAbilityWorldReticle* AGSGATA_Trace::SpawnReticleActor(FVector Location,
 	return nullptr;
 }
 
-void AGSGATA_Trace::DestroyReticleActors()
+void AVTGATA_Trace::DestroyReticleActors()
 {
 	for (int32 i = ReticleActors.Num() - 1; i >= 0; i--)
 	{

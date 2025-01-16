@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameplayCueManager.h"
-#include "GSGameplayCueManager.generated.h"
+#include "VTGameplayCueManager.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GASSHOOTER_API UGSGameplayCueManager : public UGameplayCueManager
+class LUGAMEPLAYFRAME_API UVTGameplayCueManager : public UGameplayCueManager
 {
 	GENERATED_BODY()
 	

@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayTagAddedRemoved, FGamepla
  * Useful to use in Blueprint/UMG.
  */
 UCLASS(BlueprintType, meta = (ExposedAsyncProxy = AsyncTask))
-class GASSHOOTER_API UAsyncTaskGameplayTagAddedRemoved : public UBlueprintAsyncActionBase
+class LUGAMEPLAYFRAME_API UAsyncTaskGameplayTagAddedRemoved : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
 	

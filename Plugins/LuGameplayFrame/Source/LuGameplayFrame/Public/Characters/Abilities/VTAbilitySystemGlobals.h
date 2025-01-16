@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemGlobals.h"
-#include "GSAbilitySystemGlobals.generated.h"
+#include "VTAbilitySystemGlobals.generated.h"
 
 /**
  * Child class of UAbilitySystemGlobals.
  * Do not try to get a reference to this or call into it during constructors of other UObjects. It will crash in packaged games.
  */
 UCLASS()
-class GASSHOOTER_API UGSAbilitySystemGlobals : public UAbilitySystemGlobals
+class LUGAMEPLAYFRAME_API UVTAbilitySystemGlobals : public UAbilitySystemGlobals
 {
 	GENERATED_BODY()
 	
 public:
-	UGSAbilitySystemGlobals();
+	UVTAbilitySystemGlobals();
 
 	/**
 	* Cache commonly used tags here. This has the benefit of one place to set the tag FName in case tag names change and
@@ -37,9 +37,9 @@ public:
 	UPROPERTY()
 	FGameplayTag InteractingRemovalTag;
 
-	static UGSAbilitySystemGlobals& GSGet()
+	static UVTAbilitySystemGlobals& GSGet()
 	{
-		return dynamic_cast<UGSAbilitySystemGlobals&>(Get());
+		return dynamic_cast<UVTAbilitySystemGlobals&>(Get());
 	}
 
 	/** Should allocate a project specific GameplayEffectContext struct. Caller is responsible for deallocation */

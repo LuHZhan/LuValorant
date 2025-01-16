@@ -7,7 +7,7 @@
 #include "VTProjectile.generated.h"
 
 UCLASS()
-class GASSHOOTER_API AVTProjectile : public AActor
+class LUGAMEPLAYFRAME_API AVTProjectile : public AActor
 {
 	GENERATED_BODY()
 	

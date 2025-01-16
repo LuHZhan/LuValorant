@@ -11,7 +11,7 @@
 * Base AActor class that has an AbilitySystemComponent but does not inherit from ACharacter.
 */
 UCLASS()
-class GASSHOOTER_API AVTASCActorBase : public AActor, public IAbilitySystemInterface
+class LUGAMEPLAYFRAME_API AVTASCActorBase : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
