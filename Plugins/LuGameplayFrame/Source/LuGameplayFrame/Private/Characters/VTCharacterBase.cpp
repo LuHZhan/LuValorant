@@ -218,6 +218,7 @@ float AVTCharacterBase::GetMaxShield() const
 
 float AVTCharacterBase::GetMoveSpeed() const
 {
+	
 	if (IsValid(AttributeSetBase))
 	{
 		return AttributeSetBase->GetMoveSpeed();
@@ -266,7 +267,7 @@ void AVTCharacterBase::InitializeAttributes()
 		return;
 	}
 
-	if (!DefaultAttributes)
+	if (StartupInitAttributesGEs.IsEmpty())
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s() Missing DefaultAttributes for %s. Please fill in the character's Blueprint."), *FString(__FUNCTION__), *GetName());
 		return;
@@ -276,10 +277,12 @@ void AVTCharacterBase::InitializeAttributes()
 	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributes, GetCharacterLevel(), EffectContext);
-	if (NewHandle.IsValid())
+	for(const TSubclassOf<UGameplayEffect> GameplayEffect : StartupInitAttributesGEs)
 	{
-		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+		if (FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+		}
 	}
 }
 

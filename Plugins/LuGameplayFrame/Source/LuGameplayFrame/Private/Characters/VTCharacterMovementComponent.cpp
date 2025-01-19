@@ -27,17 +27,18 @@ float UVTCharacterMovementComponent::GetMaxSpeed() const
 		return Super::GetMaxSpeed();
 	}
 
-	if (!Owner->IsAlive())
-	{
-		return 0.0f;
-	}
-
-	// Don't move while interacting or being interacted on (revived)
-	if (Owner->GetAbilitySystemComponent() && Owner->GetAbilitySystemComponent()->GetTagCount(InteractingTag)
-		> Owner->GetAbilitySystemComponent()->GetTagCount(InteractingRemovalTag))
-	{
-		return 0.0f;
-	}
+ 
+	// if (!Owner->IsAlive())
+	// {
+	// 	return 0.0f;
+	// }
+	//
+	// // Don't move while interacting or being interacted on (revived)
+	// if (Owner->GetAbilitySystemComponent() && Owner->GetAbilitySystemComponent()->GetTagCount(InteractingTag)
+	// 	> Owner->GetAbilitySystemComponent()->GetTagCount(InteractingRemovalTag))
+	// {
+	// 	return 0.0f;
+	// }
 
 	if (Owner->GetAbilitySystemComponent() && Owner->GetAbilitySystemComponent()->HasMatchingGameplayTag(KnockedDownTag))
 	{

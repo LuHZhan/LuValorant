@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnhancedInputComponent.h"
 #include "GameplayEffectTypes.h"
+#include "InputMappingContext.h"
 
 #include "Characters/VTCharacterBase.h"
-#include "..\Abilities\VTInteractable.h"
+#include "../Abilities/VTInteractable.h"
 #include "VTHeroCharacter.generated.h"
 
 class AVTWeapon;
@@ -16,13 +18,13 @@ UENUM(BlueprintType)
 enum class EVTHeroWeaponState : uint8
 {
 	// 0
-	Rifle					UMETA(DisplayName = "Rifle"),
+	Rifle UMETA(DisplayName = "Rifle"),
 	// 1
-	RifleAiming				UMETA(DisplayName = "Rifle Aiming"),
+	RifleAiming UMETA(DisplayName = "Rifle Aiming"),
 	// 2
-	RocketLauncher			UMETA(DisplayName = "Rocket Launcher"),
+	RocketLauncher UMETA(DisplayName = "Rocket Launcher"),
 	// 3
-	RocketLauncherAiming	UMETA(DisplayName = "Rocket Launcher Aiming")
+	RocketLauncherAiming UMETA(DisplayName = "Rocket Launcher Aiming")
 };
 
 USTRUCT()
@@ -42,6 +44,24 @@ struct LUGAMEPLAYFRAME_API FVTHeroInventory
 	// Etc
 };
 
+USTRUCT(Blueprintable)
+struct FInputActionInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
+	UInputAction* Action;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
+	FName BindFunctionName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
+	ETriggerEvent BindTriggerEventType = ETriggerEvent::Triggered;
+};
+
+class AVTHeroCharacter;
+typedef FEnhancedInputActionHandlerValueSignature::TMethodPtr<AVTHeroCharacter> InputActionHandler;
+
 /**
  * A player or AI controlled hero character.
  */
@@ -49,7 +69,7 @@ UCLASS()
 class LUGAMEPLAYFRAME_API AVTHeroCharacter : public AVTCharacterBase, public IVTInteractable
 {
 	GENERATED_BODY()
-	
+
 public:
 	AVTHeroCharacter(const class FObjectInitializer& ObjectInitializer);
 
@@ -189,7 +209,40 @@ public:
 	*/
 	FSimpleMulticastDelegate* GetTargetCancelInteractionDelegate(UPrimitiveComponent* InteractionComponent) override;
 
-protected:
+	
+
+public:
+	// EnhancedInput Context
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant|Input")
+	UInputMappingContext* InputMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
+	TArray<FInputActionInfo> Actions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
+	TArray<FString> StartupActions;
+
+	static bool IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc);
+
+	/**
+		 * Hero Moving
+		 * @param Value MoveValue 
+		 */
+	UFUNCTION(BlueprintCallable)
+	void Move(const FInputActionValue& Value);
+	
+	/**
+	 * HeroLook
+	 * @param Value LookValue 
+	 */
+	UFUNCTION(BlueprintCallable)
+	void Look(const	FInputActionValue& Value);
+	
+	// static TMap<FString, InputActionHandler> InputActionHandleWithFuncMap;
+	
+	// ---------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
 	FVector StartingThirdPersonMeshLocation;
 
@@ -318,6 +371,7 @@ protected:
 	void MoveRight(float Value);
 
 	// Toggles between perspectives
+	UFUNCTION(BlueprintCallable, Category = "Valorant|VTHeroCharacter")
 	void TogglePerspective();
 
 	// Sets the perspective
@@ -372,7 +426,7 @@ protected:
 	void OnRep_Inventory();
 
 	void OnAbilityActivationFailed(const UGameplayAbility* FailedAbility, const FGameplayTagContainer& FailTags);
-	
+
 	// The CurrentWeapon is only automatically replicated to simulated clients.
 	// The autonomous client can use this to request the proper CurrentWeapon from the server when it knows it may be
 	// out of sync with it from predictive client-side changes.
@@ -380,7 +434,7 @@ protected:
 	void ServerSyncCurrentWeapon();
 	void ServerSyncCurrentWeapon_Implementation();
 	bool ServerSyncCurrentWeapon_Validate();
-	
+
 	// The CurrentWeapon is only automatically replicated to simulated clients.
 	// Use this function to manually sync the autonomous client's CurrentWeapon when we're ready to.
 	// This allows us to predict weapon changes (changing weapons fast multiple times in a row so that the server doesn't
@@ -390,3 +444,5 @@ protected:
 	void ClientSyncCurrentWeapon_Implementation(AVTWeapon* InWeapon);
 	bool ClientSyncCurrentWeapon_Validate(AVTWeapon* InWeapon);
 };
+
+

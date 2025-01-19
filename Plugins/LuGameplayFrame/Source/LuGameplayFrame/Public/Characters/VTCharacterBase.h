@@ -139,10 +139,10 @@ protected:
 	TArray<TSubclassOf<class UVTGameplayAbility>> CharacterAbilities;
 
 	/**
-	 *  初始化AS的GE
+	 *  初始化AS的GE List
 	 */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+	TArray<TSubclassOf<class UGameplayEffect>> StartupInitAttributesGEs;
 
 	/**
 	 *  初始化的GE List

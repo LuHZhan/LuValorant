@@ -2,13 +2,15 @@
 
 
 #include "Characters/Heroes/VTHeroCharacter.h"
+
+#include "EnhancedInputSubsystems.h"
 #include "Animation/AnimInstance.h"
 #include "AI/VTHeroAIController.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 #include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
-#include "..\..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
+#include "../../../Public/Characters/Abilities/AttributeSets/VTAttributeSetBase.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -24,6 +26,13 @@
 #include "TimerManager.h"
 #include "UI/VTFloatingStatusBarWidget.h"
 #include "Weapons/VTWeapon.h"
+
+// TMap<FString, InputActionHandler> AVTHeroCharacter::InputActionHandleWithFuncMap = {
+// 	{TEXT("Move"), &AVTHeroCharacter::Move},
+// 	{TEXT("Look"), &AVTHeroCharacter::Look},
+// 	{TEXT("Jump"), &AVTHeroCharacter::Jump},
+// 	{TEXT("StopJumping"), &AVTHeroCharacter::StopJumping}
+// };
 
 AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -91,6 +100,11 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	// Cache tags
 	KnockedDownTag = FGameplayTag::RequestGameplayTag("State.KnockedDown");
 	InteractingTag = FGameplayTag::RequestGameplayTag("State.Interacting");
+
+	StartupActions.Empty();
+	StartupActions.Add(TEXT("Move"));
+	StartupActions.Add(TEXT("Look"));
+	StartupActions.Add(TEXT("Jump"));
 }
 
 void AVTHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -108,18 +122,36 @@ void AVTHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AVTHeroCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AVTHeroCharacter::MoveRight);
+	// PlayerInputComponent->BindAxis("MoveForward", this, &AVTHeroCharacter::MoveForward);
+	// PlayerInputComponent->BindAxis("MoveRight", this, &AVTHeroCharacter::MoveRight);
+	//
+	// PlayerInputComponent->BindAxis("LookUp", this, &AVTHeroCharacter::LookUp);
+	// PlayerInputComponent->BindAxis("LookUpRate", this, &AVTHeroCharacter::LookUpRate);
+	// PlayerInputComponent->BindAxis("Turn", this, &AVTHeroCharacter::Turn);
+	// PlayerInputComponent->BindAxis("TurnRate", this, &AVTHeroCharacter::TurnRate);
+	//
+	// PlayerInputComponent->BindAction("TogglePerspective", IE_Pressed, this, &AVTHeroCharacter::TogglePerspective);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &AVTHeroCharacter::LookUp);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AVTHeroCharacter::LookUpRate);
-	PlayerInputComponent->BindAxis("Turn", this, &AVTHeroCharacter::Turn);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AVTHeroCharacter::TurnRate);
-
-	PlayerInputComponent->BindAction("TogglePerspective", IE_Pressed, this, &AVTHeroCharacter::TogglePerspective);
-
-	// Bind player input to the AbilitySystemComponent. Also called in OnRep_PlayerState because of a potential race condition.
-	BindASCInput();
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		// TODO:通过InputMappingContext去获取Actions并初始化为FInputActionInfo
+		for (FString InputActionName : StartupActions)
+		{
+			for (FInputActionInfo ActionInfo : Actions)
+			{
+				if (ActionInfo.BindFunctionName == FName{InputActionName})
+				{
+					const UFunction* FuncHandler = GetClass()->FindFunctionByName(ActionInfo.BindFunctionName);
+					bool bIsParameterFunc = false;
+					if (FuncHandler != nullptr && AVTHeroCharacter::IsInputActionValueFunc(FuncHandler, bIsParameterFunc))
+					{
+						EnhancedInputComponent->BindAction(ActionInfo.Action, ActionInfo.BindTriggerEventType, this, FName(ActionInfo.BindFunctionName));
+					}
+				}
+			}
+		}
+		BindASCInput();
+	}
 }
 
 // Server only
@@ -630,6 +662,62 @@ FSimpleMulticastDelegate* AVTHeroCharacter::GetTargetCancelInteractionDelegate(U
 	return &InteractionCanceledDelegate;
 }
 
+void AVTHeroCharacter::Move(const FInputActionValue& Value)
+{
+	const FVector2D MovementVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Move Input Value: %f -- %f"), MovementVector.X, MovementVector.Y));
+		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
+		AddMovementInput(GetActorRightVector(), MovementVector.X);
+	}
+}
+
+void AVTHeroCharacter::Look(const FInputActionValue& Value)
+{
+	const FVector2D LookAxisVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+bool AVTHeroCharacter::IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc)
+{
+	bool IsValidFuncTag = false;
+	if (Func)
+	{
+		const FProperty* ReturnParam = Func->GetReturnProperty();
+		if (ReturnParam == nullptr)
+		{
+			int ParamCount = 0;
+			for (TFieldIterator<FProperty> It(Func); It; ++It)
+			{
+				const FProperty* ParamProperty = *It;
+				if (ParamProperty && !ParamProperty->HasAnyPropertyFlags(CPF_ReturnParm))
+				{
+					ParamCount++;
+					const FString ParamType = ParamProperty->GetClass()->GetName();
+					if (ParamType == TEXT("StructProperty") && ParamProperty->GetCPPType() == TEXT("FInputActionValue"))
+					{
+						// FEnhancedInputActionHandlerValueSignature
+						bIsParameterFunc = true;
+						IsValidFuncTag = true;
+					}
+				}
+			}
+			// FEnhancedInputActionHandlerSignature
+			if (ParamCount == 0)
+			{
+				bIsParameterFunc = false;
+				IsValidFuncTag = true;
+			}
+		}
+	}
+	return IsValidFuncTag;
+}
+
 /**
 * On the Server, Possession happens before BeginPlay.
 * On the Client, BeginPlay happens before Possession.
@@ -650,6 +738,11 @@ void AVTHeroCharacter::BeginPlay()
 	if (GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		ServerSyncCurrentWeapon();
+	}
+
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<AVTPlayerController>(GetController())->GetLocalPlayer()))
+	{
+		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 }
 
@@ -905,14 +998,17 @@ void AVTHeroCharacter::BindASCInput()
 {
 	if (!bASCInputBound && IsValid(AbilitySystemComponent) && IsValid(InputComponent))
 	{
-		FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(FName("/Script/GASShooter"), FName("EGSAbilityInputID"));
-		AbilitySystemComponent->BindAbilityActivationToInputComponent(
-			InputComponent,
-			FGameplayAbilityInputBinds(FString("ConfirmTarget"),
-			                           FString("CancelTarget"),
-			                           AbilityEnumAssetPath,
-			                           static_cast<int32>(EVTAbilityInputID::Confirm),
-			                           static_cast<int32>(EVTAbilityInputID::Cancel)));
+		// FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(FName("/Script/LuValorant"), FName("EVTAbilityInputID"));
+		// if (AbilityEnumAssetPath != nullptr)
+		// {
+		// 	AbilitySystemComponent->BindAbilityActivationToInputComponent(
+		// 		InputComponent,
+		// 		FGameplayAbilityInputBinds(FString("ConfirmTarget"),
+		// 		                           FString("CancelTarget"),
+		// 		                           AbilityEnumAssetPath,
+		// 		                           static_cast<int32>(EVTAbilityInputID::Confirm),
+		// 		                           static_cast<int32>(EVTAbilityInputID::Cancel)));
+		// }
 
 		bASCInputBound = true;
 	}
