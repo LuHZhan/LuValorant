@@ -88,7 +88,7 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	UIFloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	UIFloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
 
-	UIFloatingStatusBarClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/UI_FloatingStatusBar_Hero.UI_FloatingStatusBar_Hero_C"));
+	// UIFloatingStatusBarClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/UI_FloatingStatusBar_Hero.UI_FloatingStatusBar_Hero_C"));
 	if (!UIFloatingStatusBarClass)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
@@ -105,6 +105,9 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	StartupActions.Add(TEXT("Move"));
 	StartupActions.Add(TEXT("Look"));
 	StartupActions.Add(TEXT("Jump"));
+
+	// Setting
+	HeroSetting.LookScale = 0.5f;
 }
 
 void AVTHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -121,16 +124,6 @@ void AVTHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void AVTHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	// PlayerInputComponent->BindAxis("MoveForward", this, &AVTHeroCharacter::MoveForward);
-	// PlayerInputComponent->BindAxis("MoveRight", this, &AVTHeroCharacter::MoveRight);
-	//
-	// PlayerInputComponent->BindAxis("LookUp", this, &AVTHeroCharacter::LookUp);
-	// PlayerInputComponent->BindAxis("LookUpRate", this, &AVTHeroCharacter::LookUpRate);
-	// PlayerInputComponent->BindAxis("Turn", this, &AVTHeroCharacter::Turn);
-	// PlayerInputComponent->BindAxis("TurnRate", this, &AVTHeroCharacter::TurnRate);
-	//
-	// PlayerInputComponent->BindAction("TogglePerspective", IE_Pressed, this, &AVTHeroCharacter::TogglePerspective);
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -678,9 +671,13 @@ void AVTHeroCharacter::Look(const FInputActionValue& Value)
 	const FVector2D LookAxisVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerYawInput(LookAxisVector.X * HeroSetting.LookScale);
+		AddControllerPitchInput(LookAxisVector.Y * HeroSetting.LookScale);
 	}
+}
+
+void AVTHeroCharacter::SaveSetting()
+{
 }
 
 bool AVTHeroCharacter::IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc)

@@ -9,6 +9,7 @@
 
 #include "Characters/VTCharacterBase.h"
 #include "../Abilities/VTInteractable.h"
+#include "Setting/VTSettingType.h"
 #include "VTHeroCharacter.generated.h"
 
 class AVTWeapon;
@@ -209,11 +210,8 @@ public:
 	*/
 	FSimpleMulticastDelegate* GetTargetCancelInteractionDelegate(UPrimitiveComponent* InteractionComponent) override;
 
-	
-
 public:
-	// EnhancedInput Context
-
+	// --------- EnhancedInput ---------
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant|Input")
 	UInputMappingContext* InputMappingContext;
 
@@ -223,6 +221,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
 	TArray<FString> StartupActions;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Setting")
+	FVTHeroSettingType HeroSetting;
+
+	UFUNCTION(BlueprintCallable, Category = "Valorant|Setting")
+	void SaveSetting();
+
 	static bool IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc);
 
 	/**
@@ -231,17 +235,15 @@ public:
 		 */
 	UFUNCTION(BlueprintCallable)
 	void Move(const FInputActionValue& Value);
-	
+
 	/**
 	 * HeroLook
 	 * @param Value LookValue 
 	 */
 	UFUNCTION(BlueprintCallable)
-	void Look(const	FInputActionValue& Value);
-	
-	// static TMap<FString, InputActionHandler> InputActionHandleWithFuncMap;
-	
-	// ---------
+	void Look(const FInputActionValue& Value);
+
+	// ========= EnhancedInput =========
 
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
 	FVector StartingThirdPersonMeshLocation;
@@ -396,6 +398,11 @@ public:
 
 	void SetupStartupPerspective();
 
+	/**
+	 * 这个武器是否已经在背包里
+	 * @param InWeapon 
+	 * @return 
+	 */
 	bool DoesWeaponExistInInventory(AVTWeapon* InWeapon);
 
 	void SetCurrentWeapon(AVTWeapon* NewWeapon, AVTWeapon* LastWeapon);
@@ -444,5 +451,3 @@ public:
 	void ClientSyncCurrentWeapon_Implementation(AVTWeapon* InWeapon);
 	bool ClientSyncCurrentWeapon_Validate(AVTWeapon* InWeapon);
 };
-
-

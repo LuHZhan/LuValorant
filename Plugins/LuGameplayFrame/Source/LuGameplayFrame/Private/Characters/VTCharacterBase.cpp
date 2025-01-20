@@ -27,9 +27,8 @@ AVTCharacterBase::AVTCharacterBase(const class FObjectInitializer& ObjectInitial
 	// Cache tags
 	DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
 	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag("Effect.RemoveOnDeath");
-
-	// Hardcoding to avoid having to manually set for every Blueprint child class
-	DamageNumberClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/WC_DamageText.WC_DamageText_C"));
+	
+	// DamageNumberClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/WC_DamageText.WC_DamageText_C"));
 	if (!DamageNumberClass)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s() Failed to find DamageNumberClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));

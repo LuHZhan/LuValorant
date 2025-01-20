@@ -29,6 +29,10 @@
     {
       "Name": "Paper2D",
       "Enabled": true
+    },
+    {
+        "Name": "EnhancedInput",
+        "Enabled": true
     }
   ]
 }
