@@ -212,6 +212,7 @@ public:
 
 public:
 	// --------- EnhancedInput ---------
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant|Input")
 	UInputMappingContext* InputMappingContext;
 

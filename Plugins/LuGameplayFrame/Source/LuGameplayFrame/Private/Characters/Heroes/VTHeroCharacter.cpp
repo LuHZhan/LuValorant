@@ -89,10 +89,10 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	UIFloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
 
 	// UIFloatingStatusBarClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/UI_FloatingStatusBar_Hero.UI_FloatingStatusBar_Hero_C"));
-	if (!UIFloatingStatusBarClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
-	}
+	// if (!UIFloatingStatusBarClass)
+	// {
+	// 	UE_LOG(LogTemp, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+	// }
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 	AIControllerClass = AVTHeroAIController::StaticClass();

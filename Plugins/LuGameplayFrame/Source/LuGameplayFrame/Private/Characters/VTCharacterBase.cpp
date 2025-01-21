@@ -29,10 +29,10 @@ AVTCharacterBase::AVTCharacterBase(const class FObjectInitializer& ObjectInitial
 	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag("Effect.RemoveOnDeath");
 	
 	// DamageNumberClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/WC_DamageText.WC_DamageText_C"));
-	if (!DamageNumberClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Failed to find DamageNumberClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
-	}
+	// if (!DamageNumberClass)
+	// {
+	// 	UE_LOG(LogTemp, Error, TEXT("%s() Failed to find DamageNumberClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+	// }
 }
 
 UAbilitySystemComponent* AVTCharacterBase::GetAbilitySystemComponent() const

@@ -88,6 +88,7 @@ void AVTWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	// 指定一个属性在满足特定条件时才进行复制, COND_OwnerOnly：仅复制给该 Actor 的所有者
 	DOREPLIFETIME_CONDITION(AVTWeapon, OwningCharacter, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AVTWeapon, PrimaryClipAmmo, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(AVTWeapon, MaxPrimaryClipAmmo, COND_OwnerOnly);
