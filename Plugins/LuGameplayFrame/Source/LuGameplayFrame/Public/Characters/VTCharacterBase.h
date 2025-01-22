@@ -74,49 +74,49 @@ public:
 
 	// Switch on AbilityID to return individual ability levels.
 	// TODO:
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character")
 	virtual int32 GetAbilityLevel(EVTAbilityInputID AbilityID) const;
 
-	UPROPERTY(BlueprintAssignable, Category = "VT|GSCharacter")
+	UPROPERTY(BlueprintAssignable, Category = "VT|Character")
 	FVTCharacterDiedDelegate OnCharacterDied;
 
 	/**
 	* Getters for attributes from GSAttributeSetBase
 	**/
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	int32 GetCharacterLevel() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMaxHealth() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMana() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMaxMana() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMaxStamina() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetShield() const;
 
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMaxShield() const;
 
 	// Current MoveSpeed
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMoveSpeed() const;
 
 	// Base MoveSpeed
-	UFUNCTION(BlueprintCallable, Category = "VT|GSCharacter|Attributes")
+	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
 	float GetMoveSpeedBaseValue() const;
 
 protected:
@@ -124,12 +124,12 @@ protected:
 	FGameplayTag EffectRemoveOnDeathTag;
 	TArray<FVTDamageNumber> DamageNumberQueue;
 	FTimerHandle DamageNumberTimer;
-	
-	
+
+
 	/**
 	 *  初始AS
 	 */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "VT|Abilities")
 	class UVTAttributeSetBase* AttributeSetBase;
 
 	/**
@@ -151,10 +151,10 @@ protected:
 	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "VT|Abilities")
 	class UVTAbilitySystemComponent* AbilitySystemComponent;
-	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|GSCharacter")
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Character")
 	FText CharacterName;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Animation")
@@ -162,11 +162,11 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Audio")
 	class USoundCue* DeathSound;
-	
+
 	UPROPERTY(EditAnywhere, Category = "VT|UI")
 	TSubclassOf<class UVTDamageTextWidgetComponent> DamageNumberClass;
-	
-	
+
+
 	virtual void BeginPlay() override;
 
 	// CS

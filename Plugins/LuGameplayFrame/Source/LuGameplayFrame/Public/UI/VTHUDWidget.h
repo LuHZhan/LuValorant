@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+
+#include "../Characters/Abilities/AttributeSets/VTAttributeSetBase.h"
+#include "../Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
+
 #include "VTHUDWidget.generated.h"
 
 class UPaperSprite;
@@ -16,8 +20,15 @@ UCLASS()
 class LUGAMEPLAYFRAME_API UVTHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool CallUpdateEvent(FGameplayAttribute AS, float NewValue, float OldValue);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "VT|UI")
+	TMap<FGameplayAttribute, FName> AttributeFuncNameMap;
+	// TMap<FGameplayAttribute, UFunction> AttributeFuncMap;
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void ShowAbilityConfirmPrompt(bool bShowText);
 
@@ -70,52 +81,52 @@ public:
 	*/
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetMaxHealth(float MaxHealth);
+	void SetMaxHealth(float NewValue, float OldValue = -1);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetCurrentHealth(float CurrentHealth);
+	void SetCurrentHealth(float NewValue, float OldValue = -1);
+
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetHealthPercentage(float HealthPercentage);
+
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetHealthRegenRate(float HealthRegenRate);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetHealthPercentage(float HealthPercentage);
+	void SetMaxStamina(float NewValue, float OldValue = -1);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetHealthRegenRate(float HealthRegenRate);
+	void SetCurrentStamina(float NewValue, float OldValue = -1);
+
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetStaminaPercentage(float StaminaPercentage);
+	//
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetStaminaRegenRate(float StaminaRegenRate);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetMaxStamina(float MaxStamina);
+	void SetMaxMana(float NewValue, float OldValue = -1);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetCurrentStamina(float CurrentStamina);
+	void SetCurrentMana(float NewValue, float OldValue = -1);
+
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetManaPercentage(float ManaPercentage);
+	//
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetManaRegenRate(float ManaRegenRate);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetStaminaPercentage(float StaminaPercentage);
+	void SetMaxShield(float NewValue, float OldValue = -1);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetStaminaRegenRate(float StaminaRegenRate);
+	void SetCurrentShield(float NewValue, float OldValue = -1);
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetMaxMana(float MaxMana);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetCurrentMana(float CurrentMana);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetManaPercentage(float ManaPercentage);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetManaRegenRate(float ManaRegenRate);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetMaxShield(float MaxShield);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetCurrentShield(float CurrentShield);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetShieldPercentage(float ShieldPercentage);
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetShieldRegenRate(float ShieldRegenRate);
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetShieldPercentage(float ShieldPercentage);
+	//
+	// UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	// void SetShieldRegenRate(float ShieldRegenRate);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetExperience(int32 Experience);

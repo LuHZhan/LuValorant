@@ -72,7 +72,7 @@ public:
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class LUGAMEPLAYFRAME_API UVTAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()

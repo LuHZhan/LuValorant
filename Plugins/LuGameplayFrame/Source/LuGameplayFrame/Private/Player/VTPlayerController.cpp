@@ -43,20 +43,20 @@ void AVTPlayerController::CreateHUD()
 	// Set attributes
 	UIHUDWidget->SetCurrentHealth(PS->GetHealth());
 	UIHUDWidget->SetMaxHealth(PS->GetMaxHealth());
-	UIHUDWidget->SetHealthPercentage(PS->GetHealth() / PS->GetMaxHealth());
+	// UIHUDWidget->SetHealthPercentage(PS->GetHealth() / PS->GetMaxHealth());
 	UIHUDWidget->SetCurrentMana(PS->GetMana());
 	UIHUDWidget->SetMaxMana(PS->GetMaxMana());
-	UIHUDWidget->SetManaPercentage(PS->GetMana() / PS->GetMaxMana());
-	UIHUDWidget->SetHealthRegenRate(PS->GetHealthRegenRate());
-	UIHUDWidget->SetManaRegenRate(PS->GetManaRegenRate());
+	// UIHUDWidget->SetManaPercentage(PS->GetMana() / PS->GetMaxMana());
+	// UIHUDWidget->SetHealthRegenRate(PS->GetHealthRegenRate());
+	// UIHUDWidget->SetManaRegenRate(PS->GetManaRegenRate());
 	UIHUDWidget->SetCurrentStamina(PS->GetStamina());
 	UIHUDWidget->SetMaxStamina(PS->GetMaxStamina());
-	UIHUDWidget->SetStaminaPercentage(PS->GetStamina() / PS->GetMaxStamina());
-	UIHUDWidget->SetStaminaRegenRate(PS->GetStaminaRegenRate());
+	// UIHUDWidget->SetStaminaPercentage(PS->GetStamina() / PS->GetMaxStamina());
+	// UIHUDWidget->SetStaminaRegenRate(PS->GetStaminaRegenRate());
 	UIHUDWidget->SetCurrentShield(PS->GetShield());
 	UIHUDWidget->SetMaxShield(PS->GetMaxShield());
-	UIHUDWidget->SetShieldRegenRate(PS->GetShieldRegenRate());
-	UIHUDWidget->SetShieldPercentage(PS->GetShield() / PS->GetMaxShield());
+	// UIHUDWidget->SetShieldRegenRate(PS->GetShieldRegenRate());
+	// UIHUDWidget->SetShieldPercentage(PS->GetShield() / PS->GetMaxShield());
 	UIHUDWidget->SetExperience(PS->GetXP());
 	UIHUDWidget->SetGold(PS->GetGold());
 	UIHUDWidget->SetHeroLevel(PS->GetCharacterLevel());
