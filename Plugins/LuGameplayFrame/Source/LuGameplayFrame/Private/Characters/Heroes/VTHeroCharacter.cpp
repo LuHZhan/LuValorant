@@ -660,7 +660,7 @@ void AVTHeroCharacter::Move(const FInputActionValue& Value)
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Move Input Value: %f -- %f"), MovementVector.X, MovementVector.Y));
+		// UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Move Input Value: %f -- %f"), MovementVector.X, MovementVector.Y));
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
