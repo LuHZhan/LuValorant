@@ -136,7 +136,7 @@ void AVTWeapon::NotifyActorBeginOverlap(AActor* Other)
 
 	if (IsValid(this) && !OwningCharacter)
 	{
-		PickUpOnTouch(Cast<AVTHeroCharacter>(Other));
+		PickUp(Cast<AVTHeroCharacter>(Other));
 	}
 }
 
@@ -429,7 +429,7 @@ void AVTWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-void AVTWeapon::PickUpOnTouch(AVTHeroCharacter* InCharacter)
+void AVTWeapon::PickUp(AVTHeroCharacter* InCharacter)
 {
 	if (!InCharacter || !InCharacter->IsAlive() || !InCharacter->GetAbilitySystemComponent() || InCharacter->GetAbilitySystemComponent()->HasAnyMatchingGameplayTags(RestrictedPickupTags))
 	{

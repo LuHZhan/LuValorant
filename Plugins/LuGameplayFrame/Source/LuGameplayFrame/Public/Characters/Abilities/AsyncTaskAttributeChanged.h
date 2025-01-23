@@ -5,31 +5,29 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintAsyncActionBase.h"
 #include "AbilitySystemComponent.h"
+// #include "GameplayEffectTypes.h"
 #include "AsyncTaskAttributeChanged.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAttributeChanged, FGameplayAttribute, Attribute, float, NewValue, float, OldValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnAttributeChanged, FGameplayAttribute, Attribute, float, NewValue, float, OldValue, FString, EffectSpecName);
 
-/**
- * Blueprint node to automatically register a listener for all attribute changes in an AbilitySystemComponent.
- * Useful to use in UI.
- */
+
 UCLASS(BlueprintType, meta=(ExposedAsyncProxy = AsyncTask))
 class LUGAMEPLAYFRAME_API UAsyncTaskAttributeChanged : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChanged OnAttributeChanged;
-	
-	// Listens for an attribute changing.
+
+	// Listens for an attribute change
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
 	static UAsyncTaskAttributeChanged* ListenForAttributeChange(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAttribute Attribute);
 
 	// Listens for an attribute changing.
 	// Version that takes in an array of Attributes. Check the Attribute output for which Attribute changed.
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true"))
-	static UAsyncTaskAttributeChanged* ListenForAttributesChange(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGameplayAttribute> Attributes);
+	static UAsyncTaskAttributeChanged* ListenForAttributeListChange(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGameplayAttribute> Attributes);
 
 	// You must call this function manually when you want the AsyncTask to end.
 	// For UMG Widgets, you would call it in the Widget's Destruct event.

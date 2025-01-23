@@ -13,6 +13,8 @@
 class UPaperSprite;
 class UTexture2D;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FListenFinished);
+
 /**
  * 
  */
@@ -22,10 +24,13 @@ class LUGAMEPLAYFRAME_API UVTHUDWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	FListenFinished OnListenFinished;
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CallUpdateEvent(FGameplayAttribute AS, float NewValue, float OldValue);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "VT|UI")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "VT|FuncMap")
 	TMap<FGameplayAttribute, FName> AttributeFuncNameMap;
 	// TMap<FGameplayAttribute, UFunction> AttributeFuncMap;
 

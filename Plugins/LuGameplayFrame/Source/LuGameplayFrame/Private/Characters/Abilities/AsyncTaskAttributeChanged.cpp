@@ -3,6 +3,8 @@
 
 #include "Characters/Abilities/AsyncTaskAttributeChanged.h"
 
+#include "GameplayEffectExtension.h"
+
 UAsyncTaskAttributeChanged* UAsyncTaskAttributeChanged::ListenForAttributeChange(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAttribute Attribute)
 {
 	UAsyncTaskAttributeChanged* WaitForAttributeChangedTask = NewObject<UAsyncTaskAttributeChanged>();
@@ -20,7 +22,7 @@ UAsyncTaskAttributeChanged* UAsyncTaskAttributeChanged::ListenForAttributeChange
 	return WaitForAttributeChangedTask;
 }
 
-UAsyncTaskAttributeChanged * UAsyncTaskAttributeChanged::ListenForAttributesChange(UAbilitySystemComponent * AbilitySystemComponent, TArray<FGameplayAttribute> Attributes)
+UAsyncTaskAttributeChanged* UAsyncTaskAttributeChanged::ListenForAttributeListChange(UAbilitySystemComponent* AbilitySystemComponent, TArray<FGameplayAttribute> Attributes)
 {
 	UAsyncTaskAttributeChanged* WaitForAttributeChangedTask = NewObject<UAsyncTaskAttributeChanged>();
 	WaitForAttributeChangedTask->ASC = AbilitySystemComponent;
@@ -56,7 +58,12 @@ void UAsyncTaskAttributeChanged::EndTask()
 	MarkAsGarbage();
 }
 
-void UAsyncTaskAttributeChanged::AttributeChanged(const FOnAttributeChangeData & Data)
+void UAsyncTaskAttributeChanged::AttributeChanged(const FOnAttributeChangeData& Data)
 {
-	OnAttributeChanged.Broadcast(Data.Attribute, Data.NewValue, Data.OldValue);
+	FString GEName = TEXT("NULL");
+	if (Data.GEModData != nullptr)
+	{
+		GEName = Data.GEModData->EffectSpec.Def.GetName();
+	}
+	OnAttributeChanged.Broadcast(Data.Attribute, Data.NewValue, Data.OldValue, GEName);
 }

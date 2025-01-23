@@ -25,8 +25,8 @@ UCLASS(Blueprintable, BlueprintType)
 class LUGAMEPLAYFRAME_API AVTWeapon : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AVTWeapon();
 
@@ -42,13 +42,13 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GASShooter|Weapon")
 	FGameplayTagContainer RestrictedPickupTags;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
 	UPaperSprite* PrimaryIcon;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
 	UPaperSprite* SecondaryIcon;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
 	UPaperSprite* PrimaryClipIcon;
 
@@ -88,7 +88,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GASShooter|Weapon")
 	virtual USkeletalMeshComponent* GetWeaponMesh3P() const;
-	
+
 	/**
 	 * 返回用于网络复制的属性
 	 * @param OutLifetimeProps 
@@ -99,19 +99,26 @@ public:
 
 	void SetOwningCharacter(AVTHeroCharacter* InOwningCharacter);
 
-	// Pickup on touch
+	// Collision Overlap
 	virtual void NotifyActorBeginOverlap(class AActor* Other) override;
-	
-	virtual void Equip();
-	virtual void UnEquip();
 
+	virtual int32 GetAbilityLevel(EVTAbilityInputID AbilityID);
 	virtual void AddAbilities();
 	virtual void RemoveAbilities();
 
-	virtual int32 GetAbilityLevel(EVTAbilityInputID AbilityID);
+	// ---------------- Function ----------------
 
-	// Resets things like fire mode to default
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	virtual void PickUp(AVTHeroCharacter* InCharacter);
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	virtual void Equip();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	virtual void UnEquip();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void ResetWeapon();
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -119,8 +126,18 @@ public:
 	virtual void OnDropped_Implementation(FVector NewLocation);
 	virtual bool OnDropped_Validate(FVector NewLocation);
 
-	// --------- Getting and Setting ---------
-	
+	// Getter for LineTraceTargetActor. Spawns it if it doesn't exist yet.
+	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
+	AVTGATA_LineTrace* GetLineTraceTargetActor();
+
+	// Getter for SphereTraceTargetActor. Spawns it if it doesn't exist yet.
+	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
+	AVTGATA_SphereTrace* GetSphereTraceTargetActor();
+
+	// ================ Function ================
+
+	// ---------------- Getting and Setting ----------------
+
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
 	virtual int32 GetPrimaryClipAmmo() const;
 
@@ -156,7 +173,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Animation")
 	UAnimMontage* GetEquip3PMontage() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Audio")
 	class USoundCue* GetPickupSound() const;
 
@@ -165,16 +182,8 @@ public:
 
 	// ========= Getting and Setting =========
 
-	// Getter for LineTraceTargetActor. Spawns it if it doesn't exist yet.
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AVTGATA_LineTrace* GetLineTraceTargetActor();
-
-	// Getter for SphereTraceTargetActor. Spawns it if it doesn't exist yet.
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AVTGATA_SphereTrace* GetSphereTraceTargetActor();
-
 protected:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="ASC")
 	UVTAbilitySystemComponent* AbilitySystemComponent;
 
 	// How much ammo in the clip the gun starts with
@@ -261,8 +270,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
-	// Called when the player picks up this weapon
-	virtual void PickUpOnTouch(AVTHeroCharacter* InCharacter);
 
 	UFUNCTION()
 	virtual void OnRep_PrimaryClipAmmo(int32 OldPrimaryClipAmmo);
