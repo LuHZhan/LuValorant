@@ -36,7 +36,7 @@ UVTGameplayAbility::UVTGameplayAbility()
 void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnAvatarSet(ActorInfo, Spec);
-
+	
 	if (bActivateAbilityOnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle, false);
@@ -108,9 +108,7 @@ FVTGameplayEffectContainerSpec UVTGameplayAbility::MakeEffectContainerSpecFromCo
 
 FVTGameplayEffectContainerSpec UVTGameplayAbility::MakeEffectContainerSpec(FGameplayTag ContainerTag, const FGameplayEventData& EventData, int32 OverrideGameplayLevel)
 {
-	FVTGameplayEffectContainer* FoundContainer = EffectContainerMap.Find(ContainerTag);
-
-	if (FoundContainer)
+	if (const FVTGameplayEffectContainer* FoundContainer = EffectContainerMap.Find(ContainerTag))
 	{
 		return MakeEffectContainerSpecFromContainer(*FoundContainer, EventData, OverrideGameplayLevel);
 	}
@@ -136,10 +134,9 @@ UObject* UVTGameplayAbility::K2_GetSourceObject(FGameplayAbilitySpecHandle Handl
 
 bool UVTGameplayAbility::BatchRPCTryActivateAbility(FGameplayAbilitySpecHandle InAbilityHandle, bool EndAbilityImmediately)
 {
-	UVTAbilitySystemComponent* GSASC = Cast<UVTAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
-	if (GSASC)
+	if (UVTAbilitySystemComponent* ASC = Cast<UVTAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo()))
 	{
-		return GSASC->BatchRPCTryActivateAbility(InAbilityHandle, EndAbilityImmediately);
+		return ASC->BatchRPCTryActivateAbility(InAbilityHandle, EndAbilityImmediately);
 	}
 
 	return false;
@@ -177,18 +174,7 @@ bool UVTGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	if (bSourceObjectMustEqualCurrentWeaponToActivate)
-	{
-		AVTHeroCharacter* Hero = Cast<AVTHeroCharacter>(ActorInfo->AvatarActor);
-		if (Hero && Hero->GetCurrentWeapon() && (UObject*)Hero->GetCurrentWeapon() == GetSourceObject(Handle, ActorInfo))
-		{
-			return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
-		}
-		else
-		{
-			return false;
-		}
-	}
+	
 
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }

@@ -133,6 +133,13 @@ public:
 	// Single shots (semi auto fire) combine ActivateAbility, SendTargetData, and EndAbility into one RPC instead of three.
 	// Full auto shots combine ActivateAbility and SendTargetData into one RPC instead of two for the first bullet. Each subsequent
 	// bullet is one RPC for SendTargetData. We then send one final RPC for the EndAbility when we're done firing.
+	// 
+	// 尝试激活给定的技能，将所有 RPC 处理并批处理为一个。这只会对一帧中发生的所有 RPC 进行批处理。
+	// 最佳情况是将 ActivateAbility、SendTargetData 和 EndAbility 批处理到一个 RPC 中，而不是三个。
+	// 最坏的情况是将 ActivateAbility 和 SendTargetData 批处理到一个 RPC 中，而不是两个，稍后在单独的 RPC 中调用 EndAbility。
+	// 如果我们无法使用 ActivateAbility 对 SendTargetData 或 EndAbility 进行批处理，因为它们由于潜在技能任务而没有发生在同一帧中，那么批处理没有帮助，
+	// 我们应该正常激活。单发（半自动射击）将 ActivateAbility、SendTargetData 和 EndAbility 合并到一个 RPC 中，而不是三个。
+	// 全自动射击将 ActivateAbility 和 SendTargetData 合并到一个 RPC 中，而不是第一个项目符号的两个 RPC。每个后续项目符号都是 SendTargetData 的一个 RPC。然后，当我们完成触发时，我们为 EndAbility 发送一个最终的 RPC。
 	UFUNCTION(BlueprintCallable, Category = "Abilities")
 	virtual bool BatchRPCTryActivateAbility(FGameplayAbilitySpecHandle InAbilityHandle, bool EndAbilityImmediately);
 
