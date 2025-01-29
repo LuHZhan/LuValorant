@@ -81,9 +81,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	// Only called on the Server. Calls before Server's AcknowledgePossession.
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -111,6 +108,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Valorant|Inventory")
 	AVTWeapon* GetCurrentWeapon() const;
+
+	UFUNCTION(Blueprintable, BlueprintNativeEvent, Category="WeaponInterFace")
+	void UpdatePersonMeshLocation();
 
 	// Adds a new weapon to the inventory.
 	// Returns false if the weapon already exists in the inventory, true if it's a new weapon.
@@ -140,6 +140,9 @@ public:
 	virtual void PreviousWeapon();
 
 	FName GetWeaponAttachPoint();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ability")
+	UVTAbilitySystemComponent* GetAbilityComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Valorant|Inventory")
 	int32 GetPrimaryClipAmmo() const;
@@ -213,14 +216,42 @@ public:
 public:
 	// --------- EnhancedInput ---------
 
+	/** 常规IMC */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant|Input")
-	UInputMappingContext* InputMappingContext;
+	UInputMappingContext* BaseInputMappingContext;
 
+	/** 基础Action列表 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
-	TArray<FInputActionInfo> Actions;
+	TArray<FInputActionInfo> BaseActions;
 
+	/** 开始具备的能力 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
 	TArray<FString> StartupActions;
+
+	/** 绑定Actions */
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	static bool IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc);
+
+	UEnhancedInputComponent* GetEnhancedInput() const;
+
+	/**
+	 * Hero Moving
+	 * @param Value MoveValue 
+	 */
+	UFUNCTION(BlueprintCallable)
+	void Move(const FInputActionValue& Value);
+
+	/**
+	 * Hero Look
+	 * @param Value LookValue 
+	 */
+	UFUNCTION(BlueprintCallable)
+	void Look(const FInputActionValue& Value);
+
+	// ========= EnhancedInput =========
+
+	// --------- Setting ---------
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Setting")
 	FVTHeroSettingType HeroSetting;
@@ -228,23 +259,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Valorant|Setting")
 	void SaveSetting();
 
-	static bool IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc);
-
-	/**
-		 * Hero Moving
-		 * @param Value MoveValue 
-		 */
-	UFUNCTION(BlueprintCallable)
-	void Move(const FInputActionValue& Value);
-
-	/**
-	 * HeroLook
-	 * @param Value LookValue 
-	 */
-	UFUNCTION(BlueprintCallable)
-	void Look(const FInputActionValue& Value);
-
-	// ========= EnhancedInput =========
+	// ========= Setting =========
 
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
 	FVector StartingThirdPersonMeshLocation;

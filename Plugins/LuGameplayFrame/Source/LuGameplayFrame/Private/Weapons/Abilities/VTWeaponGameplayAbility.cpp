@@ -2,18 +2,20 @@
 
 
 #include "Weapons/Abilities/VTWeaponGameplayAbility.h"
+
+#include "AbilitySystemComponent.h"
+#include "Characters/Abilities/VTAbilitySystemComponent.h"
+#include "Weapons/VTWeapon.h"
 #include "Characters/Heroes/VTHeroCharacter.h"
 
-
-class AVTHeroCharacter;
 
 bool UVTWeaponGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
                                                   const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (bSourceObjectMustEqualCurrentWeaponToActivate)
 	{
-		AVTHeroCharacter* Hero = Cast<AVTHeroCharacter>(ActorInfo->AvatarActor);
-		if (Hero && Hero->GetCurrentWeapon() && Cast<UObject>(Hero->GetCurrentWeapon()) == GetSourceObject(Handle, ActorInfo))
+		if (const AVTHeroCharacter* Hero = Cast<AVTHeroCharacter>(ActorInfo->AvatarActor);
+			Hero && Hero->GetCurrentWeapon() && Cast<UObject>(Hero->GetCurrentWeapon()) == GetSourceObject(Handle, ActorInfo))
 		{
 			return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 		}
@@ -23,4 +25,14 @@ bool UVTWeaponGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHand
 		}
 	}
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
+
+AVTWeapon* UVTWeaponGameplayAbility::GetWeapon() const
+{
+	if (UObject* Object = GetCurrentSourceObject(); Object != nullptr)
+	{
+		return Cast<AVTWeapon>(Object);
+	}
+	return nullptr;
 }

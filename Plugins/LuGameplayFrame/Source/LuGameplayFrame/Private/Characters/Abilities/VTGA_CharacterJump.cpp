@@ -7,7 +7,7 @@
 
 UVTGA_CharacterJump::UVTGA_CharacterJump()
 {
-	AbilityInputID = EVTAbilityInputID::Jump;
+	// AbilityInputID = EVTAbilityInputID::Jump;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
 	ActivationOwnedTags.RemoveTag(FGameplayTag::RequestGameplayTag("Ability.BlocksInteraction"));

@@ -24,6 +24,7 @@
 #include "Player/VTPlayerState.h"
 #include "Sound/SoundCue.h"
 #include "TimerManager.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "UI/VTFloatingStatusBarWidget.h"
 #include "Weapons/VTWeapon.h"
 
@@ -123,6 +124,7 @@ void AVTHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 // Called to bind functionality to input
 void AVTHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	// InputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
@@ -130,7 +132,7 @@ void AVTHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		// TODO:通过InputMappingContext去获取Actions并初始化为FInputActionInfo
 		for (FString InputActionName : StartupActions)
 		{
-			for (FInputActionInfo ActionInfo : Actions)
+			for (FInputActionInfo ActionInfo : BaseActions)
 			{
 				if (ActionInfo.BindFunctionName == FName{InputActionName})
 				{
@@ -175,7 +177,8 @@ void AVTHeroCharacter::PossessedBy(AController* NewController)
 
 		AddStartupEffects();
 
-		AddCharacterAbilities();
+		// TODO:改在OnPossess里执行，因为绑定GA的ActionInput需要获取EnhancedInput
+		// AddCharacterAbilities();
 
 		AVTPlayerController* PC = Cast<AVTPlayerController>(GetController());
 		if (PC)
@@ -329,6 +332,14 @@ USkeletalMeshComponent* AVTHeroCharacter::GetThirdPersonMesh() const
 AVTWeapon* AVTHeroCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
+}
+
+void AVTHeroCharacter::UpdatePersonMeshLocation_Implementation()
+{
+	if (IsInFirstPersonPerspective())
+	{
+		FirstPersonMesh->SetRelativeLocation(FVector{-6.5, 15.5, -150});
+	}
 }
 
 bool AVTHeroCharacter::AddWeaponToInventory(AVTWeapon* NewWeapon, bool bEquipWeapon)
@@ -516,7 +527,13 @@ void AVTHeroCharacter::PreviousWeapon()
 
 FName AVTHeroCharacter::GetWeaponAttachPoint()
 {
-	return WeaponAttachPoint;
+	// return WeaponAttachPoint;
+	return FName(TEXT("GripPoint"));
+}
+
+UVTAbilitySystemComponent* AVTHeroCharacter::GetAbilityComponent() const
+{
+	return Cast<UVTAbilitySystemComponent>(GetAbilitySystemComponent());
 }
 
 int32 AVTHeroCharacter::GetPrimaryClipAmmo() const
@@ -718,6 +735,11 @@ bool AVTHeroCharacter::IsInputActionValueFunc(const UFunction* Func, bool& bIsPa
 	return IsValidFuncTag;
 }
 
+UEnhancedInputComponent* AVTHeroCharacter::GetEnhancedInput() const
+{
+	return Cast<UEnhancedInputComponent>(InputComponent);
+}
+
 /**
 * On the Server, Possession happens before BeginPlay.
 * On the Client, BeginPlay happens before Possession.
@@ -740,9 +762,17 @@ void AVTHeroCharacter::BeginPlay()
 		ServerSyncCurrentWeapon();
 	}
 
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<AVTPlayerController>(GetController())->GetLocalPlayer()))
+
+	if (const APlayerController* TempController = Cast<APlayerController>(GetController()); TempController != nullptr)
 	{
-		Subsystem->AddMappingContext(InputMappingContext, 0);
+		if (TempController->GetLocalPlayer() != nullptr)
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(Cast<AVTPlayerController>(GetController())->GetLocalPlayer());
+				Subsystem != nullptr)
+			{
+				Subsystem->AddMappingContext(BaseInputMappingContext, 0);
+			}
+		}
 	}
 }
 

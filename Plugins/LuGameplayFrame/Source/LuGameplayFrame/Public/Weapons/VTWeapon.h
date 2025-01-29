@@ -7,6 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "GameplayTagContainer.h"
+#include "Abilities/VTWeaponGameplayAbility.h"
 #include "Characters/Abilities/VTAbilityTypes.h"
 #include "VTWeapon.generated.h"
 
@@ -37,13 +38,13 @@ public:
 
 	// This tag is primarily used by the first person Animation Blueprint to determine which animations to play
 	// (Rifle vs Rocket Launcher)
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GASShooter|Weapon")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTag WeaponTag;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GASShooter|Weapon")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTagContainer RestrictedPickupTags;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon|UI")
 	UPaperSprite* PrimaryIcon;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GASShooter|UI")
@@ -64,8 +65,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "GASShooter|Weapon")
 	FGameplayTag SecondaryAmmoType;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	TMap<FName, TSubclassOf<UVTWeaponGameplayAbility>> WeaponGameplayAbilities;
+
 	// Things like fire mode for rifle
-	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Category = "GASShooter|Weapon")
+	UPROPERTY(BlueprintReadWrite, VisibleInstanceOnly, Category = "Weapon")
 	FText StatusText;
 
 	UPROPERTY(BlueprintAssignable, Category = "GASShooter|Weapon")
@@ -79,9 +83,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "GASShooter|Weapon")
 	FWeaponAmmoChangedDelegate OnMaxSecondaryClipAmmoChanged;
-
-	// Implement IAbilitySystemInterface
+	
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ability")
+	UVTAbilitySystemComponent* GetAbilityComponent() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GASShooter|Weapon")
 	virtual USkeletalMeshComponent* GetWeaponMesh1P() const;
@@ -107,7 +113,6 @@ public:
 	virtual void RemoveAbilities();
 
 	// ---------------- Function ----------------
-
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void PickUp(AVTHeroCharacter* InCharacter);
@@ -180,7 +185,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
 	FText GetDefaultStatusText() const;
 
-	// ========= Getting and Setting =========
+	// ================ Getting and Setting ================
 
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="ASC")

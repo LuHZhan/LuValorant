@@ -25,16 +25,17 @@ class LUGAMEPLAYFRAME_API UVTWeaponAttributeSetBase : public UAttributeSet
 
 public:
 	UVTWeaponAttributeSetBase();
+
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
-
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// using PreAttributeChangeFunc = void(*)(const FGameplayAttribute&, float&);
 	// static TMap<FGameplayAttribute, PreAttributeChangeFunc> MessageHandlerMap;
+
+	// ---------------- 枪械伤害 ----------------
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData BodyDamage;
@@ -44,9 +45,13 @@ public:
 	FGameplayAttributeData HeadDamage;
 	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, HeadDamage)
 
+	// ================ 枪械伤害 ================
+
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData FireRate;
 	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, FireRate)
+
+	// ---------------- 弹匣情况 ----------------
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData MagazineSize;
@@ -64,21 +69,41 @@ public:
 	UFUNCTION()
 	virtual void OnRep_ReserveAmmo(const FGameplayAttributeData& OldReserveAmmo);
 
-	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
-	FGameplayAttributeData Spread;
-	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, Spread)
+	// ================ 弹匣情况 ================
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
-	FGameplayAttributeData MovingAccuracy;
-	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, MovingAccuracy)
+	FGameplayAttributeData AimZoomLevel;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, AimZoomLevel)
+
+	// ---------------- 枪械散布 ----------------
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
-	FGameplayAttributeData ZoomLevel;
-	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, ZoomLevel)
+	FGameplayAttributeData BaseSpread;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, BaseSpread)
+
+	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
+	FGameplayAttributeData AimSpread;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, AimSpread)
+
+	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
+	FGameplayAttributeData SpreadIncrement;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, SpreadIncrement)
+
+	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
+	FGameplayAttributeData MaxSpread;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, MaxSpread)
+
+	// ================ 枪械散布 ================
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData Cost;
 	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, Cost)
+
+	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
+	FGameplayAttributeData FireAmmoCount;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, FireAmmoCount)
+
+	/** Const Variable */
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	float MinDamage = 0.0f;

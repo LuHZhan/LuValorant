@@ -71,15 +71,12 @@ void AVTGATA_Trace::SetDestroyOnConfirmation(bool bInDestroyOnConfirmation)
 
 void AVTGATA_Trace::StartTargeting(UGameplayAbility* Ability)
 {
-	// Don't call to Super because we can have more than one Reticle
+	Super::StartTargeting(Ability);
 
 	SetActorTickEnabled(true);
 
-	OwningAbility = Ability;
 	SourceActor = Ability->GetCurrentActorInfo()->AvatarActor.Get();
 
-	// This is a lazy way of emptying and repopulating the ReticleActors.
-	// We could come up with a solution that reuses them.
 	DestroyReticleActors();
 
 	if (ReticleClass)
@@ -102,7 +99,7 @@ void AVTGATA_Trace::ConfirmTargetingAndContinue()
 	if (SourceActor)
 	{
 		TArray<FHitResult> HitResults = PerformTrace(SourceActor);
-		FGameplayAbilityTargetDataHandle Handle = MakeTargetData(HitResults);
+		const FGameplayAbilityTargetDataHandle Handle = MakeTargetData(HitResults);
 		TargetDataReadyDelegate.Broadcast(Handle);
 
 #if ENABLE_DRAW_DEBUG
@@ -122,10 +119,11 @@ void AVTGATA_Trace::ConfirmTargetingAndContinue()
 void AVTGATA_Trace::CancelTargeting()
 {
 	const FGameplayAbilityActorInfo* ActorInfo = (OwningAbility ? OwningAbility->GetCurrentActorInfo() : nullptr);
-	UAbilitySystemComponent* ASC = (ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr);
-	if (ASC)
+	if (UAbilitySystemComponent* ASC = (ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
 	{
-		ASC->AbilityReplicatedEventDelegate(EAbilityGenericReplicatedEvent::GenericCancel, OwningAbility->GetCurrentAbilitySpecHandle(), OwningAbility->GetCurrentActivationInfo().GetActivationPredictionKey()).Remove(GenericCancelHandle);
+		// Remove Delegate
+		ASC->AbilityReplicatedEventDelegate(EAbilityGenericReplicatedEvent::GenericCancel, OwningAbility->GetCurrentAbilitySpecHandle(),
+		                                    OwningAbility->GetCurrentActivationInfo().GetActivationPredictionKey()).Remove(GenericCancelHandle);
 	}
 	else
 	{
@@ -133,9 +131,7 @@ void AVTGATA_Trace::CancelTargeting()
 	}
 
 	CanceledDelegate.Broadcast(FGameplayAbilityTargetDataHandle());
-
 	SetActorTickEnabled(false);
-
 	if (bUsePersistentHitResults)
 	{
 		PersistentHitResults.Empty();
@@ -165,7 +161,6 @@ void AVTGATA_Trace::Tick(float DeltaSeconds)
 	TArray<FHitResult> HitResults;
 	if (bDebug || bUsePersistentHitResults)
 	{
-		// Only need to trace on Tick if we're showing debug or if we use persistent hit results, otherwise we just use the confirmation trace
 		HitResults = PerformTrace(SourceActor);
 	}
 
@@ -177,7 +172,8 @@ void AVTGATA_Trace::Tick(float DeltaSeconds)
 #endif
 }
 
-void AVTGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End, FName ProfileName, const FCollisionQueryParams Params)
+void AVTGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const UWorld* World, const FGameplayTargetDataFilterHandle FilterHandle, const FVector& Start, const FVector& End,
+                                        FName ProfileName, const FCollisionQueryParams Params)
 {
 	check(World);
 
@@ -185,39 +181,30 @@ void AVTGATA_Trace::LineTraceWithFilter(TArray<FHitResult>& OutHitResults, const
 	World->LineTraceMultiByProfile(HitResults, Start, End, ProfileName, Params);
 
 	TArray<FHitResult> FilteredHitResults;
+	const FVector TraceStart = StartLocation.GetTargetingTransform().GetLocation();
 
-	// Start param could be player ViewPoint. We want HitResult to always display the StartLocation.
-	FVector TraceStart = StartLocation.GetTargetingTransform().GetLocation();
-
-	for (int32 HitIdx = 0; HitIdx < HitResults.Num(); ++HitIdx)
+	for (FHitResult HitResult : HitResults)
 	{
-		FHitResult& Hit = HitResults[HitIdx];
-
-		if (!Hit.GetActor() || FilterHandle.FilterPassesForActor(Hit.GetActor()))
+		if (!HitResult.GetActor() || FilterHandle.FilterPassesForActor(HitResult.GetActor()))
 		{
-			Hit.TraceStart = TraceStart;
-			Hit.TraceEnd = End;
-
-			FilteredHitResults.Add(Hit);
+			HitResult.TraceStart = TraceStart;
+			HitResult.TraceEnd = End;
+			FilteredHitResults.Add(HitResult);
 		}
 	}
 
 	OutHitResults = FilteredHitResults;
-
-	return;
 }
 
 void AVTGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollisionQueryParams Params, const FVector& TraceStart, FVector& OutTraceEnd, bool bIgnorePitch)
 {
-	if (!OwningAbility) // Server and launching client only
+	if (!OwningAbility)
 	{
 		return;
 	}
 
-	// Default values in case of AI Controller
 	FVector ViewStart = TraceStart;
 	FRotator ViewRot = StartLocation.GetTargetingTransform().GetRotation().Rotator();
-
 	if (PrimaryPC)
 	{
 		PrimaryPC->GetPlayerViewPoint(ViewStart, ViewRot);
@@ -226,43 +213,44 @@ void AVTGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollis
 	const FVector ViewDir = ViewRot.Vector();
 	FVector ViewEnd = ViewStart + (ViewDir * MaxRange);
 
+	// 计算出最终的ClippedPosition
 	ClipCameraRayToAbilityRange(ViewStart, ViewDir, TraceStart, MaxRange, ViewEnd);
 
-	// Use first hit
+	// 过滤掉掉不需要的HitResult
 	TArray<FHitResult> HitResults;
 	LineTraceWithFilter(HitResults, InSourceActor->GetWorld(), Filter, ViewStart, ViewEnd, TraceProfile.Name, Params);
 
+	// 更新当前散布值
 	CurrentTargetingSpread = FMath::Min(TargetingSpreadMax, CurrentTargetingSpread + TargetingSpreadIncrement);
 
+	// 获取最终HitResult的最大落点
 	const bool bUseTraceResult = HitResults.Num() > 0 && (FVector::DistSquared(TraceStart, HitResults[0].Location) <= (MaxRange * MaxRange));
-
 	const FVector AdjustedEnd = (bUseTraceResult) ? HitResults[0].Location : ViewEnd;
 
-	FVector AdjustedAimDir = (AdjustedEnd - TraceStart).GetSafeNormal();
-	if (AdjustedAimDir.IsZero())
-	{
-		AdjustedAimDir = ViewDir;
-	}
+	// 基于修正后最终HitResult落点的方向
+	FVector AdjustedAimDir = (AdjustedEnd - TraceStart).GetSafeNormal().IsZero() ? ViewDir : (AdjustedEnd - TraceStart).GetSafeNormal();
 
 	if (!bTraceAffectsAimPitch && bUseTraceResult)
 	{
-		FVector OriginalAimDir = (ViewEnd - TraceStart).GetSafeNormal();
-
-		if (!OriginalAimDir.IsZero())
+		// 基于视野落点的方向 
+		if (FVector OriginalAimDir = (ViewEnd - TraceStart).GetSafeNormal(); !OriginalAimDir.IsZero())
 		{
-			// Convert to angles and use original pitch
-			const FRotator OriginalAimRot = OriginalAimDir.Rotation();
-
+			// 转换为角度并使用原始Pitch
+			FRotator OriginalAimRot = OriginalAimDir.Rotation();
 			FRotator AdjustedAimRot = AdjustedAimDir.Rotation();
-			AdjustedAimRot.Pitch = OriginalAimRot.Pitch;
 
+			// 使用View的Pitch
+			AdjustedAimRot.Pitch = OriginalAimRot.Pitch;
+			// 更新修正后的方向
 			AdjustedAimDir = AdjustedAimRot.Vector();
 		}
 	}
 
 	const float CurrentSpread = GetCurrentSpread();
-
+	// 散布锥体的一半角度
 	const float ConeHalfAngle = FMath::DegreesToRadians(CurrentSpread * 0.5f);
+
+	// 获取最终的增加了随机值的方向
 	const int32 RandomSeed = FMath::Rand();
 	FRandomStream WeaponRandomStream(RandomSeed);
 	const FVector ShootDir = WeaponRandomStream.VRandCone(AdjustedAimDir, ConeHalfAngle, ConeHalfAngle);
@@ -272,20 +260,27 @@ void AVTGATA_Trace::AimWithPlayerController(const AActor* InSourceActor, FCollis
 
 bool AVTGATA_Trace::ClipCameraRayToAbilityRange(FVector CameraLocation, FVector CameraDirection, FVector AbilityCenter, float AbilityRange, FVector& ClippedPosition)
 {
-	FVector CameraToCenter = AbilityCenter - CameraLocation;
-	float DotToCenter = FVector::DotProduct(CameraToCenter, CameraDirection);
-	if (DotToCenter >= 0)		//If this fails, we're pointed away from the center, but we might be inside the sphere and able to find a good exit point.
+	// Relative ViewStart Vector
+	const FVector CameraToCenter = AbilityCenter - CameraLocation;
+	// 判断Camera是否朝向AbilityCenter,true表示Camera朝向AbilityCenter
+	if (const float DotToCenter = FVector::DotProduct(CameraToCenter, CameraDirection); DotToCenter >= 0)
 	{
-		float DistanceSquared = CameraToCenter.SizeSquared() - (DotToCenter * DotToCenter);
-		float RadiusSquared = (AbilityRange * AbilityRange);
-		if (DistanceSquared <= RadiusSquared)
+		// Camera到AbilityCenter的垂直距离平方
+		const float DistanceSquared = CameraToCenter.SizeSquared() - (DotToCenter * DotToCenter);
+		// 射线与技能范围球体相交
+		if (const float RadiusSquared = (AbilityRange * AbilityRange); DistanceSquared <= RadiusSquared)
 		{
-			float DistanceFromCamera = FMath::Sqrt(RadiusSquared - DistanceSquared);
-			float DistanceAlongRay = DotToCenter + DistanceFromCamera;						//Subtracting instead of adding will get the other intersection point
-			ClippedPosition = CameraLocation + (DistanceAlongRay * CameraDirection);		//Cam aim point clipped to range sphere
+			// 计算从Camera到交点的距离
+			const float DistanceFromCamera = FMath::Sqrt(RadiusSquared - DistanceSquared);
+			// 计算沿射线的总距离,减法而不是加法会得到另一个交点
+			const float DistanceAlongRay = DotToCenter + DistanceFromCamera;
+			// 计算裁剪后的交点位置,凸轮瞄准点裁剪到范围球体
+			ClippedPosition = CameraLocation + (DistanceAlongRay * CameraDirection);
 			return true;
 		}
 	}
+
+	//如果这个失败了，我们就偏离了中心，但我们可能在球体内部，并且能够找到一个好的退出点。
 	return false;
 }
 
@@ -295,7 +290,7 @@ void AVTGATA_Trace::StopTargeting()
 
 	DestroyReticleActors();
 
-	// Clear added callbacks
+	// 清除Delegate
 	TargetDataReadyDelegate.Clear();
 	CanceledDelegate.Clear();
 
@@ -313,7 +308,7 @@ FGameplayAbilityTargetDataHandle AVTGATA_Trace::MakeTargetData(const TArray<FHit
 
 	for (int32 i = 0; i < HitResults.Num(); i++)
 	{
-		/** Note: These are cleaned up by the FGameplayAbilityTargetDataHandle (via an internal TSharedPtr) */
+		// 由FGameplayAbilityTargetDataHandle（通过内部的TSharedPtr）清理的
 		FGameplayAbilityTargetData_SingleTargetHit* ReturnData = new FGameplayAbilityTargetData_SingleTargetHit();
 		ReturnData->HitResult = HitResults[i];
 		ReturnDataHandle.Add(ReturnData);
@@ -329,6 +324,7 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 
 	ActorsToIgnore.Add(InSourceActor);
 
+	// 配置碰撞参数
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AGSGATA_LineTrace), bTraceComplex);
 	Params.bReturnPhysicalMaterial = true;
 	Params.AddIgnoredActors(ActorsToIgnore);
@@ -337,19 +333,18 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 	FVector TraceStart = StartLocation.GetTargetingTransform().GetLocation();
 	FVector TraceEnd;
 
-	if (PrimaryPC)
+	// 如果使用玩家视点进行追踪，则使用Camera作为起点
+	if (PrimaryPC && bTraceFromPlayerViewPoint)
 	{
 		FVector ViewStart;
 		FRotator ViewRot;
 		PrimaryPC->GetPlayerViewPoint(ViewStart, ViewRot);
-
-		TraceStart = bTraceFromPlayerViewPoint ? ViewStart : TraceStart;
+		TraceStart = ViewStart;
 	}
 
 	if (bUsePersistentHitResults)
 	{
-		// Clear any blocking hit results, invalid Actors, or actors out of range
-		//TODO Check for visibility if we add AIPerceptionComponent in the future
+		// 清除任何阻挡命中结果、无效Actor,超出范围的Actor
 		for (int32 i = PersistentHitResults.Num() - 1; i >= 0; i--)
 		{
 			FHitResult& HitResult = PersistentHitResults[i];
@@ -362,25 +357,26 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 	}
 
 	TArray<FHitResult> ReturnHitResults;
-
 	for (int32 TraceIndex = 0; TraceIndex < NumberOfTraces; TraceIndex++)
 	{
-		AimWithPlayerController(InSourceActor, Params, TraceStart, TraceEnd);		//Effective on server and launching client only
+		// 只在Server或者Launching Client上运行
+		AimWithPlayerController(InSourceActor, Params, TraceStart, TraceEnd);
 
 		// ------------------------------------------------------
 
 		SetActorLocationAndRotation(TraceEnd, SourceActor->GetActorRotation());
-
 		CurrentTraceEnd = TraceEnd;
 
 		TArray<FHitResult> TraceHitResults;
+		// 追踪并获取数据TraceHitResults
 		DoTrace(TraceHitResults, InSourceActor->GetWorld(), Filter, TraceStart, TraceEnd, TraceProfile.Name, Params);
 
+		// 从后开始往前遍历
 		for (int32 j = TraceHitResults.Num() - 1; j >= 0; j--)
 		{
+			// 丢弃超出追踪最大命数[MaxHitResultsPerTrace]的命中结果
 			if (MaxHitResultsPerTrace >= 0 && j + 1 > MaxHitResultsPerTrace)
 			{
-				// Trim to MaxHitResultsPerTrace
 				TraceHitResults.RemoveAt(j);
 				continue;
 			}
@@ -390,13 +386,11 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 			// Reminder: if bUsePersistentHitResults, Number of Traces = 1
 			if (bUsePersistentHitResults)
 			{
-				// This is looping backwards so that further objects from player are added first to the queue.
-				// This results in closer actors taking precedence as the further actors will get bumped out of the TArray.
-				if (HitResult.GetActor() && (!HitResult.bBlockingHit || PersistentHitResults.Num() < 1))
+				// 将命中结果持久化[PersistentHitResults]容器中
+				if (HitResult.GetActor() && (!HitResult.bBlockingHit || PersistentHitResults.IsEmpty()))
 				{
+					// 遍历是否有重复持久化的命中结果，有则跳过
 					bool bActorAlreadyInPersistentHits = false;
-
-					// Make sure PersistentHitResults doesn't have this hit actor already
 					for (int32 k = 0; k < PersistentHitResults.Num(); k++)
 					{
 						FHitResult& PersistentHitResult = PersistentHitResults[k];
@@ -413,31 +407,28 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 						continue;
 					}
 
+					// 会随着遍历将更近的命中结果持久化到容器中
 					if (PersistentHitResults.Num() >= MaxHitResultsPerTrace)
 					{
 						// Treat PersistentHitResults like a queue, remove first element
 						PersistentHitResults.RemoveAt(0);
 					}
-
 					PersistentHitResults.Add(HitResult);
 				}
 			}
 			else
 			{
-				// ReticleActors for PersistentHitResults are handled later
+				// 根据当前的索引获取对应的Reticle
 				int32 ReticleIndex = TraceIndex * MaxHitResultsPerTrace + j;
 				if (ReticleIndex < ReticleActors.Num())
 				{
 					if (AGameplayAbilityWorldReticle* LocalReticleActor = ReticleActors[ReticleIndex].Get())
 					{
-						const bool bHitActor = HitResult.GetActor() != nullptr;
-
-						if (bHitActor && !HitResult.bBlockingHit)
+						if (const bool bHitActor = HitResult.GetActor() != nullptr; bHitActor && !HitResult.bBlockingHit)
 						{
 							LocalReticleActor->SetActorHiddenInGame(false);
-
+							// 如果射线命中了一个Actor，并且Reticle的bSnapToTargetedActor为true，则将Reticle吸附到目标Actor的位置。
 							const FVector ReticleLocation = (bHitActor && LocalReticleActor->bSnapToTargetedActor) ? HitResult.GetActor()->GetActorLocation() : HitResult.Location;
-
 							LocalReticleActor->SetActorLocation(ReticleLocation);
 							LocalReticleActor->SetIsTargetAnActor(bHitActor);
 						}
@@ -448,13 +439,13 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 					}
 				}
 			}
-		} // for TraceHitResults
+		}
 
 		if (!bUsePersistentHitResults)
 		{
+			// 隐藏超出命中结果的Reticle
 			if (TraceHitResults.Num() < ReticleActors.Num())
 			{
-				// We have less hit results than ReticleActors, hide the extra ones
 				for (int32 j = TraceHitResults.Num(); j < ReticleActors.Num(); j++)
 				{
 					if (AGameplayAbilityWorldReticle* LocalReticleActor = ReticleActors[j].Get())
@@ -466,11 +457,10 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 			}
 		}
 
+		// 如果没有命中结果，则添加一个默认的命中结果
 		if (TraceHitResults.Num() < 1)
 		{
-			// If there were no hits, add a default HitResult at the end of the trace
 			FHitResult HitResult;
-			// Start param could be player ViewPoint. We want HitResult to always display the StartLocation.
 			HitResult.TraceStart = StartLocation.GetTargetingTransform().GetLocation();
 			HitResult.TraceEnd = TraceEnd;
 			HitResult.Location = TraceEnd;
@@ -484,29 +474,24 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 		}
 
 		ReturnHitResults.Append(TraceHitResults);
-	} // for NumberOfTraces
+	}
 
-	// Reminder: if bUsePersistentHitResults, Number of Traces = 1
 	if (bUsePersistentHitResults && MaxHitResultsPerTrace > 0)
 	{
-		// Handle ReticleActors
 		for (int32 PersistentHitResultIndex = 0; PersistentHitResultIndex < PersistentHitResults.Num(); PersistentHitResultIndex++)
 		{
 			FHitResult& HitResult = PersistentHitResults[PersistentHitResultIndex];
 
-			// Update TraceStart because old persistent HitResults will have their original TraceStart and the player could have moved since then
+			// 更新TraceStart，因为旧的持久化HitResults将具有原始的TraceStart，并且玩家可能从那时起就移动了
 			HitResult.TraceStart = StartLocation.GetTargetingTransform().GetLocation();
-
 			if (AGameplayAbilityWorldReticle* LocalReticleActor = ReticleActors[PersistentHitResultIndex].Get())
 			{
-				const bool bHitActor = HitResult.GetActor() != nullptr;
-
-				if (bHitActor && !HitResult.bBlockingHit)
+				// 类同上面的逻辑
+				if (const bool bHitActor = HitResult.GetActor() != nullptr; bHitActor && !HitResult.bBlockingHit)
 				{
 					LocalReticleActor->SetActorHiddenInGame(false);
-
+					// 如果射线命中了一个Actor，并且Reticle的bSnapToTargetedActor为true，则将Reticle吸附到目标Actor的位置。
 					const FVector ReticleLocation = (bHitActor && LocalReticleActor->bSnapToTargetedActor) ? HitResult.GetActor()->GetActorLocation() : HitResult.Location;
-
 					LocalReticleActor->SetActorLocation(ReticleLocation);
 					LocalReticleActor->SetIsTargetAnActor(bHitActor);
 				}
@@ -519,7 +504,7 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 
 		if (PersistentHitResults.Num() < ReticleActors.Num())
 		{
-			// We have less hit results than ReticleActors, hide the extra ones
+			// 隐藏超出命中结果的Reticle
 			for (int32 PersistentHitResultIndex = PersistentHitResults.Num(); PersistentHitResultIndex < ReticleActors.Num(); PersistentHitResultIndex++)
 			{
 				if (AGameplayAbilityWorldReticle* LocalReticleActor = ReticleActors[PersistentHitResultIndex].Get())
@@ -532,7 +517,6 @@ TArray<FHitResult> AVTGATA_Trace::PerformTrace(AActor* InSourceActor)
 
 		return PersistentHitResults;
 	}
-
 	return ReturnHitResults;
 }
 
@@ -540,8 +524,7 @@ AGameplayAbilityWorldReticle* AVTGATA_Trace::SpawnReticleActor(FVector Location,
 {
 	if (ReticleClass)
 	{
-		AGameplayAbilityWorldReticle* SpawnedReticleActor = GetWorld()->SpawnActor<AGameplayAbilityWorldReticle>(ReticleClass, Location, Rotation);
-		if (SpawnedReticleActor)
+		if (AGameplayAbilityWorldReticle* SpawnedReticleActor = GetWorld()->SpawnActor<AGameplayAbilityWorldReticle>(ReticleClass, Location, Rotation))
 		{
 			SpawnedReticleActor->InitializeReticle(this, PrimaryPC, ReticleParams);
 			SpawnedReticleActor->SetActorHiddenInGame(true);
@@ -552,15 +535,17 @@ AGameplayAbilityWorldReticle* AVTGATA_Trace::SpawnReticleActor(FVector Location,
 			// on a listen server, the reticle actor may replicate. We want consistancy between client/listen server players.
 			// Just saying 'make the reticle actor non replicated' isnt a good answer, since we want to mix and match reticle
 			// actors and there may be other targeting types that want to replicate the same reticle actor class).
+			// 
+			// 这是为了处理在监听服务器上使用复制的指示器的情况。
+			// （在客户端控制的玩家中，这只会运行在客户端上，因此永远不会复制。如果运行在监听服务器上，指示器可能会被复制。我们希望客户端和监听服务器玩家之间保持一致。
+			// 仅仅说“让指示器不复制”并不是一个好的解决方案，因为我们希望能够混合使用指示器，并且可能还有其他目标类型希望复制相同的指示器类）。
 			if (!ShouldProduceTargetDataOnServer)
 			{
 				SpawnedReticleActor->SetReplicates(false);
 			}
-
 			return SpawnedReticleActor;
 		}
 	}
-
 	return nullptr;
 }
 

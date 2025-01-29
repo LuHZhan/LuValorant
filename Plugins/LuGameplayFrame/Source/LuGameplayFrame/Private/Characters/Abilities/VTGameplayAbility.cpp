@@ -20,7 +20,7 @@ UVTGameplayAbility::UVTGameplayAbility()
 
 	bActivateAbilityOnGranted = false;
 	bActivateOnInput = true;
-	bSourceObjectMustEqualCurrentWeaponToActivate = false;
+	// bSourceObjectMustEqualCurrentWeaponToActivate = false;
 	bCannotActivateWhileInteracting = true;
 
 	// UGSAbilitySystemGlobals hasn't initialized tags yet to set ActivationBlockedTags
@@ -33,14 +33,54 @@ UVTGameplayAbility::UVTGameplayAbility()
 	InteractingRemovalTag = FGameplayTag::RequestGameplayTag("State.InteractingRemoval");
 }
 
+void UVTGameplayAbility::InputActionActivateAbility_Implementation(const FInputActionValue& Value)
+{
+	K2_ActivateAbility();
+}
+
 void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnAvatarSet(ActorInfo, Spec);
-	
+
 	if (bActivateAbilityOnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle, false);
 	}
+
+	OnPostOnAvatarSet(*ActorInfo, Spec);
+}
+
+void UVTGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnGiveAbility(ActorInfo, Spec);
+	if (ActorInfo->AbilitySystemComponent.IsValid())
+	{
+		const AVTHeroCharacter* Pawn = Cast<AVTHeroCharacter>(ActorInfo->AvatarActor.Get());
+		if (UEnhancedInputComponent* EnhancedInputComponent = Pawn->GetEnhancedInput())
+		{
+			EnhancedInputComponent->BindAction(
+				InputAction,
+				ActionTrigger,
+				this,
+				&UVTGameplayAbility::InputActionActivateAbility);
+		}
+	}
+
+	OnPostOnGiveAbility(*ActorInfo, Spec);
+}
+
+void UVTGameplayAbility::OnPostOnGiveAbility_Implementation(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+}
+
+void UVTGameplayAbility::OnPostOnAvatarSet_Implementation(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+}
+
+void UVTGameplayAbility::Internal_ActivateAbility_Implementation()
+{
+	// TODO:这里调用的是蓝图下的ActivateAbility，直接调用ActivateAbility需要额外的参数
+	K2_ActivateAbility();
 }
 
 FGameplayAbilityTargetDataHandle UVTGameplayAbility::MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors)
@@ -163,7 +203,8 @@ bool UVTGameplayAbility::IsPredictionKeyValidForMorePrediction() const
 	return ASC->ScopedPredictionKey.IsValidForMorePrediction();
 }
 
-bool UVTGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
+bool UVTGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+                                            const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (bCannotActivateWhileInteracting)
 	{
@@ -174,24 +215,23 @@ bool UVTGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	
 
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
 bool UVTGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) && GSCheckCost(Handle, *ActorInfo);
+	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) && CheckCost(Handle, *ActorInfo);
 }
 
-bool UVTGameplayAbility::GSCheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const
+bool UVTGameplayAbility::CheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const
 {
 	return true;
 }
 
 void UVTGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	GSApplyCost(Handle, *ActorInfo, ActivationInfo);
+	ApplyCost(Handle, *ActorInfo, ActivationInfo);
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 }
 
@@ -228,11 +268,11 @@ void UVTGameplayAbility::SendTargetDataToServer(const FGameplayAbilityTargetData
 		UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
 		check(ASC);
 
-		FScopedPredictionWindow	ScopedPrediction(ASC, IsPredictingClient());
+		FScopedPredictionWindow ScopedPrediction(ASC, IsPredictingClient());
 
 		FGameplayTag ApplicationTag; // Fixme: where would this be useful?
 		CurrentActorInfo->AbilitySystemComponent->CallServerSetReplicatedTargetData(CurrentSpecHandle,
-			CurrentActivationInfo.GetActivationPredictionKey(), TargetData, ApplicationTag, ASC->ScopedPredictionKey);
+		                                                                            CurrentActivationInfo.GetActivationPredictionKey(), TargetData, ApplicationTag, ASC->ScopedPredictionKey);
 	}
 }
 
@@ -245,7 +285,7 @@ bool UVTGameplayAbility::IsInputPressed() const
 UAnimMontage* UVTGameplayAbility::GetCurrentMontageForMesh(USkeletalMeshComponent* InMesh)
 {
 	FAbilityMeshMontage AbilityMeshMontage;
-	if (FindAbillityMeshMontage(InMesh, AbilityMeshMontage))
+	if (FindAbilityMeshMontage(InMesh, AbilityMeshMontage))
 	{
 		return AbilityMeshMontage.Montage;
 	}
@@ -258,7 +298,7 @@ void UVTGameplayAbility::SetCurrentMontageForMesh(USkeletalMeshComponent* InMesh
 	ensure(IsInstantiated());
 
 	FAbilityMeshMontage AbilityMeshMontage;
-	if (FindAbillityMeshMontage(InMesh, AbilityMeshMontage))
+	if (FindAbilityMeshMontage(InMesh, AbilityMeshMontage))
 	{
 		AbilityMeshMontage.Montage = InCurrentMontage;
 	}
@@ -268,7 +308,75 @@ void UVTGameplayAbility::SetCurrentMontageForMesh(USkeletalMeshComponent* InMesh
 	}
 }
 
-bool UVTGameplayAbility::FindAbillityMeshMontage(USkeletalMeshComponent* InMesh, FAbilityMeshMontage& InAbilityMeshMontage)
+AVTHeroCharacter* UVTGameplayAbility::GetPawn() const
+{
+	if (AActor* Object = GetAvatarActorFromActorInfo(); Object != nullptr)
+	{
+		return Cast<AVTHeroCharacter>(Object);
+	}
+	return nullptr;
+}
+
+UVTGameplayAbility* UVTGameplayAbility::GetAbilityInstanceFromHandle(FGameplayAbilitySpecHandle InHandle) const
+{
+	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo(); AbilitySystemComponent != nullptr)
+	{
+		if (const FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(InHandle))
+		{
+			return Cast<UVTGameplayAbility>(AbilitySpec->GetPrimaryInstance());
+		}
+	}
+	return nullptr;
+}
+
+UVTGameplayAbility* UVTGameplayAbility::GetAbilityInstanceFromClass(TSubclassOf<UGameplayAbility> InAbilityClass) const
+{
+	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo(); AbilitySystemComponent != nullptr)
+	{
+		if (const FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromClass(InAbilityClass))
+		{
+			return Cast<UVTGameplayAbility>(AbilitySpec->GetPrimaryInstance());
+		}
+	}
+	return nullptr;
+}
+
+FGameplayAbilitySpecHandle UVTGameplayAbility::GetAbilitySpecHandleFromClass(TSubclassOf<UGameplayAbility> InAbilityClass) const
+{
+	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo(); AbilitySystemComponent != nullptr)
+	{
+		UVTAbilitySystemComponent* Component = Cast<UVTAbilitySystemComponent>(AbilitySystemComponent);
+		if (const FGameplayAbilitySpecHandle AbilitySpecHandle = Component->FindAbilitySpecHandleForClass(InAbilityClass); AbilitySpecHandle.IsValid())
+		{
+			return AbilitySpecHandle;
+		}
+	}
+	return FGameplayAbilitySpecHandle{};
+}
+
+bool UVTGameplayAbility::IsPrimaryAbilityInstanceActive(FGameplayAbilitySpecHandle Handle) const
+{
+	if (const UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo(); AbilitySystemComponent != nullptr)
+	{
+		if (const FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
+		{
+			return Cast<UVTGameplayAbility>(AbilitySpec->GetPrimaryInstance())->IsActive();
+		}
+	}
+	return false;
+}
+
+bool UVTGameplayAbility::GASpecHandleIsValid(FGameplayAbilitySpecHandle SpecHandle) const
+{
+	return SpecHandle.IsValid();
+}
+
+bool UVTGameplayAbility::IsAbilityActive() const
+{
+	return IsActive();
+}
+
+bool UVTGameplayAbility::FindAbilityMeshMontage(USkeletalMeshComponent* InMesh, FAbilityMeshMontage& InAbilityMeshMontage)
 {
 	for (FAbilityMeshMontage& MeshMontage : CurrentAbilityMeshMontages)
 	{

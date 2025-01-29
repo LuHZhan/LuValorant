@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "VTAbilityTypes.h"
+#include "Input/VTInputAction.h"
+#include "Weapons/Interface/VTGeneralInterface.h"
 #include "VTGameplayAbility.generated.h"
 
 class USkeletalMeshComponent;
@@ -35,19 +37,19 @@ public:
  * 
  */
 UCLASS()
-class LUGAMEPLAYFRAME_API UVTGameplayAbility : public UGameplayAbility
+class LUGAMEPLAYFRAME_API UVTGameplayAbility : public UGameplayAbility, public IVTGeneralInterface
 {
 	GENERATED_BODY()
 
 public:
 	UVTGameplayAbility();
 
-	// Abilities with this set will automatically activate when the input is pressed
+	// // Abilities with this set will automatically activate when the input is pressed
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
 	EVTAbilityInputID AbilityInputID = EVTAbilityInputID::None;
-
-	// Value to associate an ability with an slot without tying it to an automatically activated input.
-	// Passive abilities won't be tied to an input so we need a way to generically associate abilities with slots.
+	//
+	// // Value to associate an ability with an slot without tying it to an automatically activated input.
+	// // Passive abilities won't be tied to an input so we need a way to generically associate abilities with slots.
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
 	EVTAbilityInputID AbilityID = EVTAbilityInputID::None;
 
@@ -56,18 +58,29 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability")
 	bool bActivateAbilityOnGranted;
 
-	/**
-	 * 是否启用输入激活GA
-	 */
+	/** 是否启用输入激活GA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability")
 	bool bActivateOnInput;
 
-	/**
-	 * 限制玩家在Interacting时不能激活GA
-	 */
+	/** 限制玩家在Interacting时不能激活GA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability")
 	bool bCannotActivateWhileInteracting;
 
+	// ---------------- Input ----------------
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input", meta=(EditCondition="bIsOpenAction"))
+	UVTInputAction* InputAction;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input", meta=(EditCondition="bIsOpenAction"))
+	ETriggerEvent ActionTrigger;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input")
+	bool bIsOpenAction = true;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void InputActionActivateAbility(const FInputActionValue& Value);
+
+	// ================ Input ================
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayEffects")
 	TMap<FGameplayTag, FVTGameplayEffectContainer> EffectContainerMap;
@@ -76,6 +89,17 @@ public:
 	// Epic's comment: Projects may want to initiate passives or do other "BeginPlay" type of logic here.
 	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	void OnPostOnAvatarSet(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	void OnPostOnGiveAbility(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec);
+	
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	void Internal_ActivateAbility();
+	
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	FGameplayAbilityTargetDataHandle MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors);
 
@@ -92,7 +116,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = Ability, meta = (AutoCreateRefTerm = "EventData"))
 	virtual FVTGameplayEffectContainerSpec MakeEffectContainerSpec(FGameplayTag ContainerTag, const FGameplayEventData& EventData, int32 OverrideGameplayLevel = -1);
-	
+
 	/**
 	 * Create FVTGameplayEffectContainerSpec 
 	 */
@@ -131,16 +155,16 @@ public:
 
 	// Allows C++ and Blueprint abilities to override how cost is checked in case they don't use a GE like weapon ammo
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Ability")
-	bool GSCheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
-	virtual bool GSCheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
+	bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
+	virtual bool CheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
 
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	// Allows C++ and Blueprint abilities to override how cost is applied in case they don't use a GE like weapon ammo
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Ability")
-	void GSApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const;
+	void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const;
 
-	virtual void GSApplyCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+	virtual void ApplyCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 	{
 	};
 
@@ -170,6 +194,31 @@ public:
 	/** Call to set/get the current montage from a montage task. Set to allow hooking up montage events to ability events */
 	virtual void SetCurrentMontageForMesh(USkeletalMeshComponent* InMesh, class UAnimMontage* InCurrentMontage);
 
+	// ---------------- IVTGeneralInterface ----------------
+	
+	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
+	virtual AVTHeroCharacter* GetPawn() const override;
+	
+	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
+	virtual UVTGameplayAbility* GetAbilityInstanceFromHandle(FGameplayAbilitySpecHandle InHandle) const override;
+	
+	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
+	virtual UVTGameplayAbility* GetAbilityInstanceFromClass(TSubclassOf<UGameplayAbility> InAbilityClass) const override;
+
+	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
+	virtual FGameplayAbilitySpecHandle GetAbilitySpecHandleFromClass(TSubclassOf<UGameplayAbility> InAbilityClass) const override;
+
+	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
+	virtual bool IsPrimaryAbilityInstanceActive(FGameplayAbilitySpecHandle Handle) const override;
+
+	UFUNCTION(BlueprintCallable,BlueprintPure,Category="IVTGeneralInterface")
+	virtual bool GASpecHandleIsValid(FGameplayAbilitySpecHandle SpecHandle) const override;
+
+	UFUNCTION(BlueprintCallable,BlueprintPure,Category="IVTGeneralInterface")
+	virtual bool IsAbilityActive() const override;
+
+	// ================ IVTGeneralInterface ================
+	
 protected:
 	FGameplayTag InteractingTag;
 	FGameplayTag InteractingRemovalTag;
@@ -183,7 +232,7 @@ protected:
 	UPROPERTY()
 	TArray<FAbilityMeshMontage> CurrentAbilityMeshMontages;
 
-	bool FindAbillityMeshMontage(USkeletalMeshComponent* InMesh, FAbilityMeshMontage& InAbilityMontage);
+	bool FindAbilityMeshMontage(USkeletalMeshComponent* InMesh, FAbilityMeshMontage& InAbilityMontage);
 
 	/** Immediately jumps the active montage to a section */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Animation")

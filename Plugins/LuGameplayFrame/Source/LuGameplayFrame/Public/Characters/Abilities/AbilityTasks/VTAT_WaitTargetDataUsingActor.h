@@ -6,21 +6,20 @@
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
 #include "GameplayTagContainer.h"
-#include "GSAT_WaitTargetDataUsingActor.generated.h"
+#include "VTAT_WaitTargetDataUsingActor.generated.h"
 
+// 定义一个动态多播委托，用于传递目标数据引脚
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitTargetDataUsingActorDelegate, const FGameplayAbilityTargetDataHandle&, Data);
 
 /**
- * Waits for TargetData from an already spawned TargetActor and does *NOT* destroy it when it receives data.
+ * 等待从已生成的 TargetActor 中获取目标数据，并且不会在接收到数据后销毁 TargetActor。
  *
- * The original WaitTargetData's comments expects us to subclass it heavily, but the majority of its functions
- * are not virtual. Therefore this is a total rewrite of it to add bCreateKeyIfNotValidForMorePredicting functionality.
+ * 原始的 WaitTargetData 的注释建议我们对其进行大量子类化，但它的多数函数并不是虚函数。因此，这里是对它的完全重写，以添加 bCreateKeyIfNotValidForMorePredicting 功能。
  */
 UCLASS()
-class LUGAMEPLAYFRAME_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
+class LUGAMEPLAYFRAME_API UVTAT_WaitTargetDataUsingActor : public UAbilityTask
 {
 	GENERATED_UCLASS_BODY()
-
 	UPROPERTY(BlueprintAssignable)
 	FWaitTargetDataUsingActorDelegate ValidData;
 
@@ -28,14 +27,13 @@ class LUGAMEPLAYFRAME_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
 	FWaitTargetDataUsingActorDelegate Cancelled;
 
 	/**
-	* Uses specified spawned TargetActor and waits for it to return valid data or to be canceled. The TargetActor is *NOT* destroyed.
+	* 使用指定的衍生TargetActor并等待它返回有效数据或被取消。TargetActor不会被销毁
 	*
-	* @param bCreateKeyIfNotValidForMorePredicting Will create a new scoped prediction key if the current scoped prediction key is not valid for more predicting.
-	* If false, it will always create a new scoped prediction key. We would want to set this to true if we want to use a potentially existing valid scoped prediction
-	* key like the ability's activation key in a batched ability.
+	* @param bCreateKeyIfNotValidForMorePredicting 如果当前的作用域预测键（Scoped Prediction Key）对更多预测无效，则创建一个新的。
+	* 如果为 false，则始终创建一个新的作用域预测键。如果我们希望使用可能存在的有效作用域预测键（例如批处理能力中的激活键），则应将此设置为 true。
 	*/
 	UFUNCTION(BlueprintCallable, meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "true", HideSpawnParms = "Instigator"), Category = "Ability|Tasks")
-	static UGSAT_WaitTargetDataUsingActor* WaitTargetDataWithReusableActor(
+	static UVTAT_WaitTargetDataUsingActor* WaitTargetDataWithReusableActor(
 		UGameplayAbility* OwningAbility,
 		FName TaskInstanceName,
 		TEnumAsByte<EGameplayTargetingConfirmation::Type> ConfirmationType,
@@ -44,6 +42,8 @@ class LUGAMEPLAYFRAME_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
 	);
 
 	virtual void Activate() override;
+
+	// ---------------- Delegate ----------------
 
 	UFUNCTION()
 	virtual void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& Data, FGameplayTag ActivationTag);
@@ -57,28 +57,49 @@ class LUGAMEPLAYFRAME_API UGSAT_WaitTargetDataUsingActor : public UAbilityTask
 	UFUNCTION()
 	virtual void OnTargetDataCancelledCallback(const FGameplayAbilityTargetDataHandle& Data);
 
-	// Called when the ability is asked to confirm from an outside node. What this means depends on the individual task. By default, this does nothing other than ending if bEndTask is true.
+	// ================ Delegate ================
+
+	/**
+	 * 当从外部节点请求确认时调用
+	 * @param bEndTask 
+	 */
 	virtual void ExternalConfirm(bool bEndTask) override;
 
-	// Called when the ability is asked to cancel from an outside node. What this means depends on the individual task. By default, this does nothing other than ending the task.
+	/**
+	 * 当从外部节点请求取消时调用
+	 */
 	virtual void ExternalCancel() override;
 
 protected:
 	UPROPERTY()
 	AGameplayAbilityTargetActor* TargetActor;
 
+	// 是否在预测键无效时创建新的预测键
 	bool bCreateKeyIfNotValidForMorePredicting;
 
 	TEnumAsByte<EGameplayTargetingConfirmation::Type> ConfirmationType;
 
-	FDelegateHandle OnTargetDataReplicatedCallbackDelegateHandle;
-
-	virtual void InitializeTargetActor() const;
-	virtual void FinalizeTargetActor() const;
-
-	virtual void RegisterTargetDataCallbacks();
+	// FDelegateHandle OnTargetDataReplicatedCallbackDelegateHandle;
 
 	virtual void OnDestroy(bool AbilityEnded) override;
 
+	/**
+	 * 开始初始化 TargetActor
+	 */
+	virtual void InitializeTargetActor() const;
+	/**
+	 * 完成初始化 TargetActor
+	 */
+	virtual void FinalizeTargetActor() const;
+
+	/**
+	 * 注册Target到Delegate
+	 */
+	virtual void RegisterTargetDataCallbacks();
+
+	/**
+	 * 是否应将目标数据复制到服务器
+	 * @return 
+	 */
 	virtual bool ShouldReplicateDataToServer() const;
 };

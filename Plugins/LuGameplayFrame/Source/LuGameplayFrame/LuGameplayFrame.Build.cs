@@ -27,7 +27,7 @@ public class LuGameplayFrame : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "CoreUObject", "Engine", "InputCore", "NetCore","UMG", "AIModule", "EnhancedInput"
+				"Core", "CoreUObject", "Engine", "InputCore", "NetCore","UMG", "AIModule", "EnhancedInput", "GameplayAbilities"
 				// ... add other public dependencies that you statically link with here ...
 			}
 		);

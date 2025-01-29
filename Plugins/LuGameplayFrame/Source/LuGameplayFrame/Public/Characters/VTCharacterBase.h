@@ -170,6 +170,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// CS
+public:
 	virtual void AddCharacterAbilities();
 	// CS
 	virtual void InitializeAttributes();

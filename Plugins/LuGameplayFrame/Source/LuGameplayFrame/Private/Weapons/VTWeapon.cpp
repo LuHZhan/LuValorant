@@ -17,7 +17,7 @@
 // Sets default values
 AVTWeapon::AVTWeapon()
 {
- 	// Set this actor to never tick
+	// Set this actor to never tick
 	PrimaryActorTick.bCanEverTick = false;
 
 	bReplicates = true;
@@ -43,7 +43,7 @@ AVTWeapon::AVTWeapon()
 	WeaponMesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(FName("WeaponMesh1P"));
 	WeaponMesh1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh1P->CastShadow = false;
-	WeaponMesh1P->SetVisibility(false, true);
+	WeaponMesh1P->SetVisibility(true, true);
 	WeaponMesh1P->SetupAttachment(CollisionComp);
 	WeaponMesh1P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
 
@@ -54,7 +54,7 @@ AVTWeapon::AVTWeapon()
 	WeaponMesh3P->SetupAttachment(CollisionComp);
 	WeaponMesh3P->SetRelativeLocation(WeaponMesh3PickupRelativeLocation);
 	WeaponMesh3P->CastShadow = true;
-	WeaponMesh3P->SetVisibility(true, true);
+	WeaponMesh3P->SetVisibility(false, true);
 	WeaponMesh3P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
 
 	WeaponPrimaryInstantAbilityTag = FGameplayTag::RequestGameplayTag("Ability.Weapon.Primary.Instant");
@@ -67,11 +67,29 @@ AVTWeapon::AVTWeapon()
 
 	RestrictedPickupTags.AddTag(FGameplayTag::RequestGameplayTag("State.Dead"));
 	RestrictedPickupTags.AddTag(FGameplayTag::RequestGameplayTag("State.KnockedDown"));
+
+	WeaponGameplayAbilities.Empty();
+	WeaponGameplayAbilities = {
+		{FName("FirePrimary"), nullptr},
+		{FName("FireSecondary"), nullptr},
+		{FName("Reload"), nullptr},
+		{FName("Aiming"), nullptr},
+		{FName("SwitchPreCost"), nullptr},
+	};
 }
 
 UAbilitySystemComponent* AVTWeapon::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	if (OwningCharacter)
+	{
+		return OwningCharacter->GetAbilityComponent();
+	}
+	return nullptr;
+}
+
+UVTAbilitySystemComponent* AVTWeapon::GetAbilityComponent() const
+{
+	return Cast<UVTAbilitySystemComponent>(GetAbilitySystemComponent());
 }
 
 USkeletalMeshComponent* AVTWeapon::GetWeaponMesh1P() const
@@ -148,40 +166,44 @@ void AVTWeapon::Equip()
 		return;
 	}
 
-	FName AttachPoint = OwningCharacter->GetWeaponAttachPoint();
+	const FName AttachPoint = OwningCharacter->GetWeaponAttachPoint();
 
-	if (WeaponMesh1P)
+	if (OwningCharacter->IsInFirstPersonPerspective())
 	{
 		WeaponMesh1P->AttachToComponent(OwningCharacter->GetFirstPersonMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, AttachPoint);
-		WeaponMesh1P->SetRelativeLocation(WeaponMesh1PEquippedRelativeLocation);
-		WeaponMesh1P->SetRelativeRotation(FRotator(0, 0, -90.0f));
-
-		if (OwningCharacter->IsInFirstPersonPerspective())
-		{
-			WeaponMesh1P->SetVisibility(true, true);
-		}
-		else
-		{
-			WeaponMesh1P->SetVisibility(false, true);
-		}
+		OwningCharacter->UpdatePersonMeshLocation();
+		// WeaponMesh1P->SetRelativeLocation(WeaponMesh1PEquippedRelativeLocation);
+		// WeaponMesh1P->SetRelativeRotation(FRotator(0, 0, -90.0f));
+		WeaponMesh1P->SetVisibility(true, true);
+		WeaponMesh3P->SetVisibility(false, true);
 	}
-
-	if (WeaponMesh3P)
+	else
 	{
 		WeaponMesh3P->AttachToComponent(OwningCharacter->GetThirdPersonMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, AttachPoint);
 		WeaponMesh3P->SetRelativeLocation(WeaponMesh3PEquippedRelativeLocation);
 		WeaponMesh3P->SetRelativeRotation(FRotator(0, 0, -90.0f));
 		WeaponMesh3P->CastShadow = true;
 		WeaponMesh3P->bCastHiddenShadow = true;
+		WeaponMesh3P->SetVisibility(true, true);
+		WeaponMesh1P->SetVisibility(false, true);
+	}
+	OwningCharacter->AddInstanceComponent(OwningCharacter->IsInFirstPersonPerspective() ? WeaponMesh1P : WeaponMesh3P);
 
-		if (OwningCharacter->IsInFirstPersonPerspective())
+	for (auto Ability : WeaponGameplayAbilities)
+	{
+		if (Ability.Value != nullptr)
 		{
-			WeaponMesh3P->SetVisibility(true, true); // Without this, the weapon's 3p shadow doesn't show
-			WeaponMesh3P->SetVisibility(false, true);
-		}
-		else
-		{
-			WeaponMesh3P->SetVisibility(true, true);
+			FGameplayAbilitySpec AbilitySpecHandle = FGameplayAbilitySpec{
+				Ability.Value, GetAbilityLevel(Ability.Value.GetDefaultObject()->AbilityID), -1, this
+			};
+			
+			if (IsValid(AbilitySpecHandle.Ability))
+			{
+				if (const auto ASC = GetAbilityComponent(); ASC != nullptr)
+				{
+					GetAbilityComponent()->GiveAbility(AbilitySpecHandle);
+				}
+			}
 		}
 	}
 }
@@ -403,15 +425,14 @@ AVTGATA_SphereTrace* AVTWeapon::GetSphereTraceTargetActor()
 
 void AVTWeapon::BeginPlay()
 {
-	ResetWeapon();
+	Super::BeginPlay();
 
+	ResetWeapon();
 	if (!OwningCharacter && bSpawnWithCollision)
 	{
-		// Spawned into the world without an owner, enable collision as we are in pickup mode
+		// 拾取模式下启用碰撞
 		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
-
-	Super::BeginPlay();
 }
 
 void AVTWeapon::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -438,9 +459,9 @@ void AVTWeapon::PickUp(AVTHeroCharacter* InCharacter)
 
 	if (InCharacter->AddWeaponToInventory(this, true) && OwningCharacter->IsInFirstPersonPerspective())
 	{
-		WeaponMesh3P->CastShadow = false;
-		WeaponMesh3P->SetVisibility(true, true);
-		WeaponMesh3P->SetVisibility(false, true);
+		WeaponMesh1P->CastShadow = false;
+		WeaponMesh1P->SetVisibility(true, true);
+		// WeaponMesh3P->SetVisibility(false, true);
 	}
 }
 

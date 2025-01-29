@@ -190,6 +190,8 @@ void AVTPlayerController::OnPossess(APawn* InPawn)
 	AVTPlayerState* PS = GetPlayerState<AVTPlayerState>();
 	if (PS)
 	{
+		AVTHeroCharacter* PawnCharacter = GetPawn<AVTHeroCharacter>();
+		PawnCharacter->AddCharacterAbilities();
 		// Init ASC with PS (Owner) and our new Pawn (AvatarActor)
 		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, InPawn);
 	}
