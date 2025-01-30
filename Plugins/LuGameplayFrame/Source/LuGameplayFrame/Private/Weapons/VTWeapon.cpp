@@ -63,10 +63,14 @@ AVTWeapon::AVTWeapon()
 	WeaponIsFiringTag = FGameplayTag::RequestGameplayTag("Weapon.IsFiring");
 
 	FireMode = FGameplayTag::RequestGameplayTag("Weapon.FireMode.None");
+	FireType = EFireMode::FullAuto;
+	
 	StatusText = DefaultStatusText;
 
 	RestrictedPickupTags.AddTag(FGameplayTag::RequestGameplayTag("State.Dead"));
 	RestrictedPickupTags.AddTag(FGameplayTag::RequestGameplayTag("State.KnockedDown"));
+
+	WeaponAttributeSet = CreateDefaultSubobject<UVTWeaponAttributeSetBase>(FName("AttributeSet"));
 
 	WeaponGameplayAbilities.Empty();
 	WeaponGameplayAbilities = {
@@ -158,7 +162,7 @@ void AVTWeapon::NotifyActorBeginOverlap(AActor* Other)
 	}
 }
 
-void AVTWeapon::Equip()
+void AVTWeapon::Equip_Implementation()
 {
 	if (!OwningCharacter)
 	{
@@ -196,7 +200,7 @@ void AVTWeapon::Equip()
 			FGameplayAbilitySpec AbilitySpecHandle = FGameplayAbilitySpec{
 				Ability.Value, GetAbilityLevel(Ability.Value.GetDefaultObject()->AbilityID), -1, this
 			};
-			
+
 			if (IsValid(AbilitySpecHandle.Ability))
 			{
 				if (const auto ASC = GetAbilityComponent(); ASC != nullptr)
@@ -206,6 +210,8 @@ void AVTWeapon::Equip()
 			}
 		}
 	}
+
+	InitializeAttributes();
 }
 
 void AVTWeapon::UnEquip()
@@ -321,53 +327,12 @@ bool AVTWeapon::OnDropped_Validate(FVector NewLocation)
 	return true;
 }
 
-int32 AVTWeapon::GetPrimaryClipAmmo() const
-{
-	return PrimaryClipAmmo;
-}
-
-int32 AVTWeapon::GetMaxPrimaryClipAmmo() const
-{
-	return MaxPrimaryClipAmmo;
-}
-
-int32 AVTWeapon::GetSecondaryClipAmmo() const
-{
-	return SecondaryClipAmmo;
-}
-
-int32 AVTWeapon::GetMaxSecondaryClipAmmo() const
-{
-	return MaxSecondaryClipAmmo;
-}
-
-void AVTWeapon::SetPrimaryClipAmmo(int32 NewPrimaryClipAmmo)
-{
-	int32 OldPrimaryClipAmmo = PrimaryClipAmmo;
-	PrimaryClipAmmo = NewPrimaryClipAmmo;
-	OnPrimaryClipAmmoChanged.Broadcast(OldPrimaryClipAmmo, PrimaryClipAmmo);
-}
-
-void AVTWeapon::SetMaxPrimaryClipAmmo(int32 NewMaxPrimaryClipAmmo)
-{
-	int32 OldMaxPrimaryClipAmmo = MaxPrimaryClipAmmo;
-	MaxPrimaryClipAmmo = NewMaxPrimaryClipAmmo;
-	OnMaxPrimaryClipAmmoChanged.Broadcast(OldMaxPrimaryClipAmmo, MaxPrimaryClipAmmo);
-}
-
-void AVTWeapon::SetSecondaryClipAmmo(int32 NewSecondaryClipAmmo)
-{
-	int32 OldSecondaryClipAmmo = SecondaryClipAmmo;
-	SecondaryClipAmmo = NewSecondaryClipAmmo;
-	OnSecondaryClipAmmoChanged.Broadcast(OldSecondaryClipAmmo, SecondaryClipAmmo);
-}
-
-void AVTWeapon::SetMaxSecondaryClipAmmo(int32 NewMaxSecondaryClipAmmo)
-{
-	int32 OldMaxSecondaryClipAmmo = MaxSecondaryClipAmmo;
-	MaxSecondaryClipAmmo = NewMaxSecondaryClipAmmo;
-	OnMaxSecondaryClipAmmoChanged.Broadcast(OldMaxSecondaryClipAmmo, MaxSecondaryClipAmmo);
-}
+// void AVTWeapon::SetPrimaryClipAmmo(int32 NewPrimaryClipAmmo)
+// {
+// 	int32 OldPrimaryClipAmmo = PrimaryClipAmmo;
+// 	PrimaryClipAmmo = NewPrimaryClipAmmo;
+// 	OnPrimaryClipAmmoChanged.Broadcast(OldPrimaryClipAmmo, PrimaryClipAmmo);
+// }
 
 TSubclassOf<UVTHUDReticle> AVTWeapon::GetPrimaryHUDReticleClass() const
 {
@@ -399,7 +364,34 @@ FText AVTWeapon::GetDefaultStatusText() const
 	return DefaultStatusText;
 }
 
-AVTGATA_LineTrace* AVTWeapon::GetLineTraceTargetActor()
+void AVTWeapon::InitializeAttributes() const
+{
+	GetAbilityComponent()->AddSpawnedAttribute(WeaponAttributeSet);
+
+	if (!GetAbilityComponent()->GetSpawnedAttributes().Contains(WeaponAttributeSet))
+	{
+		UE_LOG(LogTemp, Error, TEXT("WeaponAttributeSet 注册失败！"));
+		return;
+	}
+
+	if (!InitAttributeEffect)
+	{
+		UE_LOG(LogTemp, Error, TEXT("InitAttributeEffect 未配置！"));
+		return;
+	}
+
+	if (UVTAbilitySystemComponent* ASC = GetAbilityComponent(); ASC != nullptr)
+	{
+		FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+		EffectContext.AddInstigator(GetOwner(), GetOwner()); // 不指定Avatar和Owner会报错
+		if (const FGameplayEffectSpecHandle Handle = ASC->MakeOutgoingSpec(InitAttributeEffect, 1, EffectContext); Handle.IsValid())
+		{
+			ASC->ApplyGameplayEffectSpecToSelf(*Handle.Data.Get());
+		}
+	}
+}
+
+AVTGATA_LineTrace* AVTWeapon::GetOrCreateLineTraceTargetActor()
 {
 	if (LineTraceTargetActor)
 	{
@@ -411,7 +403,7 @@ AVTGATA_LineTrace* AVTWeapon::GetLineTraceTargetActor()
 	return LineTraceTargetActor;
 }
 
-AVTGATA_SphereTrace* AVTWeapon::GetSphereTraceTargetActor()
+AVTGATA_SphereTrace* AVTWeapon::GetOrCreateSphereTraceTargetActor()
 {
 	if (SphereTraceTargetActor)
 	{
@@ -421,6 +413,17 @@ AVTGATA_SphereTrace* AVTWeapon::GetSphereTraceTargetActor()
 	SphereTraceTargetActor = GetWorld()->SpawnActor<AVTGATA_SphereTrace>();
 	SphereTraceTargetActor->SetOwner(this);
 	return SphereTraceTargetActor;
+}
+
+float AVTWeapon::GetAttributeCurrentValue(const FGameplayAttribute Attribute) const
+{
+	float Value = 0.0f;
+	bool bFound = false;
+	if (const UAbilitySystemComponent* ASC = OwningCharacter->GetAbilitySystemComponent(); ASC != nullptr)
+	{
+		Value = ASC->GetGameplayAttributeValue(Attribute, bFound);
+	}
+	return bFound ? Value : 0.0f;
 }
 
 void AVTWeapon::BeginPlay()

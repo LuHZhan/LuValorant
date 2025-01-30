@@ -7,9 +7,22 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "GameplayTagContainer.h"
+#include "Abilities/VTWeaponAttributeSetBase.h"
 #include "Abilities/VTWeaponGameplayAbility.h"
+#include "Abilities/VTWeaponInitGameplayEffect.h"
 #include "Characters/Abilities/VTAbilityTypes.h"
 #include "VTWeapon.generated.h"
+
+UENUM(BlueprintType)
+enum class EFireMode :uint8
+{
+	// 全自动
+	FullAuto,
+	// 三连发
+	Burst,
+	// 单发
+	Single
+};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponAmmoChangedDelegate, int32, OldValue, int32, NewValue);
 
@@ -40,6 +53,9 @@ public:
 	// (Rifle vs Rocket Launcher)
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTag WeaponTag;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	EFireMode FireType;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTagContainer RestrictedPickupTags;
@@ -83,7 +99,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "GASShooter|Weapon")
 	FWeaponAmmoChangedDelegate OnMaxSecondaryClipAmmoChanged;
-	
+
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ability")
@@ -117,8 +133,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void PickUp(AVTHeroCharacter* InCharacter);
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	virtual void Equip();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Weapon")
+	void Equip();
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void UnEquip();
@@ -131,41 +147,40 @@ public:
 	virtual void OnDropped_Implementation(FVector NewLocation);
 	virtual bool OnDropped_Validate(FVector NewLocation);
 
-	// Getter for LineTraceTargetActor. Spawns it if it doesn't exist yet.
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AVTGATA_LineTrace* GetLineTraceTargetActor();
+	AVTGATA_LineTrace* GetOrCreateLineTraceTargetActor();
 
-	// Getter for SphereTraceTargetActor. Spawns it if it doesn't exist yet.
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Targeting")
-	AVTGATA_SphereTrace* GetSphereTraceTargetActor();
+	AVTGATA_SphereTrace* GetOrCreateSphereTraceTargetActor();
 
 	// ================ Function ================
 
-	// ---------------- Getting and Setting ----------------
+	// ---------------- Attribute Set Getting and Setting ----------------
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual int32 GetPrimaryClipAmmo() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	virtual float GetAttributeCurrentValue(const FGameplayAttribute Attribute) const;
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual int32 GetMaxPrimaryClipAmmo() const;
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual int32 GetMaxPrimaryClipAmmo() const;
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual int32 GetSecondaryClipAmmo() const;
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual int32 GetMaxSecondaryClipAmmo() const;
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual void SetPrimaryClipAmmo(int32 NewPrimaryClipAmmo);
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual void SetMaxPrimaryClipAmmo(int32 NewMaxPrimaryClipAmmo);
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual void SetSecondaryClipAmmo(int32 NewSecondaryClipAmmo);
+	//
+	// UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
+	// virtual void SetMaxSecondaryClipAmmo(int32 NewMaxSecondaryClipAmmo);
 
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual int32 GetSecondaryClipAmmo() const;
-
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual int32 GetMaxSecondaryClipAmmo() const;
-
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual void SetPrimaryClipAmmo(int32 NewPrimaryClipAmmo);
-
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual void SetMaxPrimaryClipAmmo(int32 NewMaxPrimaryClipAmmo);
-
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual void SetSecondaryClipAmmo(int32 NewSecondaryClipAmmo);
-
-	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
-	virtual void SetMaxSecondaryClipAmmo(int32 NewMaxSecondaryClipAmmo);
 
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
 	TSubclassOf<class UVTHUDReticle> GetPrimaryHUDReticleClass() const;
@@ -185,11 +200,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GASShooter|Weapon")
 	FText GetDefaultStatusText() const;
 
-	// ================ Getting and Setting ================
+	// ================ Attribute Set Getting and Setting ================
 
 protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="ASC")
 	UVTAbilitySystemComponent* AbilitySystemComponent;
+
+	/** 武器属性 */
+	UPROPERTY(BlueprintReadOnly, Category="Attribute")
+	UVTWeaponAttributeSetBase* WeaponAttributeSet;
+
+	/** 初始化武器的GE */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Attribute")
+	TSubclassOf<UVTWeaponInitGameplayEffect> InitAttributeEffect;
+
+	/** 调用GE初始化AS */
+	void InitializeAttributes() const;
 
 	// How much ammo in the clip the gun starts with
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, ReplicatedUsing = OnRep_PrimaryClipAmmo, Category = "GASShooter|Weapon|Ammo")
@@ -274,7 +300,6 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-
 
 	UFUNCTION()
 	virtual void OnRep_PrimaryClipAmmo(int32 OldPrimaryClipAmmo);

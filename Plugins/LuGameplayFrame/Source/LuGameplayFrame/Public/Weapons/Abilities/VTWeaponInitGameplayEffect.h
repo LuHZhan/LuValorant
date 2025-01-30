@@ -13,8 +13,14 @@ UCLASS()
 class LUGAMEPLAYFRAME_API UVTWeaponInitGameplayEffect : public UGameplayEffect
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
+public:
+	UVTWeaponInitGameplayEffect();
+	virtual void PostInitProperties() override;
+
+	// UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	// void OnFinishedInitProperties();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="InitData")
+	TMap<FGameplayAttribute, float> AttributeCurrentDataMap;
 };

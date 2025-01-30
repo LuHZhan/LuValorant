@@ -92,8 +92,8 @@ public:
 	FGameplayAttributeData Armor;
 	ATTRIBUTE_ACCESSORS(UVTAttributeSetBase, Armor)
 
-	// Damage is a meta attribute used by the DamageExecution to calculate final damage, which then turns into -Health
-	// Temporary value that only exists on the Server. Not replicated.
+	// Meta AttributeData
+	// 由DamageExecution用来计算最终伤害，然后变成-Health临时值，只存在于服务器上。不是复制。
 	UPROPERTY(BlueprintReadOnly, Category = "Damage")
 	FGameplayAttributeData Damage;
 	ATTRIBUTE_ACCESSORS(UVTAttributeSetBase, Damage)
@@ -133,6 +133,8 @@ public:
 
 protected:
 	FGameplayTag HeadShotTag;
+	FGameplayTag BodyShotTag;
+	FGameplayTag LegShotTag;
 
 	// Helper function to proportionally adjust the value of an attribute when it's associated max attribute changes.
 	// (i.e. When MaxHealth increases, Health increases by an amount that maintains the same percentage as before)

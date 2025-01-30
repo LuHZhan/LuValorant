@@ -12,6 +12,8 @@ UVTAttributeSetBase::UVTAttributeSetBase()
 {
 	// Cache tags
 	HeadShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.HeadShot"));
+	BodyShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.BodyShot"));
+	LegShotTag = FGameplayTag::RequestGameplayTag(FName("Effect.Damage.LegShot"));
 }
 
 void UVTAttributeSetBase::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -95,60 +97,49 @@ void UVTAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
-		// Store a local copy of the amount of damage done and clear the damage attribute
+		// 保存备份
 		const float LocalDamageDone = GetDamage();
 		SetDamage(0.f);
 
 		if (LocalDamageDone > 0.0f)
 		{
-			// If character was alive before damage is added, handle damage
-			// This prevents damage being added to dead things and replaying death animations
 			bool WasAlive = true;
-
 			if (TargetCharacter)
 			{
 				WasAlive = TargetCharacter->IsAlive();
 			}
 
-			if (!TargetCharacter->IsAlive())
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("%s() %s is NOT alive when receiving damage"), *FString(__FUNCTION__), *TargetCharacter->GetName());
-			}
-
-			// Apply the damage to shield first if it exists
-			const float OldShield = GetShield();
-			float DamageAfterShield = LocalDamageDone - OldShield;
-			if (OldShield > 0)
-			{
-				float NewShield = OldShield - LocalDamageDone;
-				SetShield(FMath::Clamp<float>(NewShield, 0.0f, GetMaxShield()));
-			}
+			const float OldArmor = GetArmor();
+			const float DamageAfterShield = LocalDamageDone - OldArmor;
 
 			if (DamageAfterShield > 0)
 			{
-				// Apply the health change and then clamp it
 				const float NewHealth = GetHealth() - DamageAfterShield;
 				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
 			}
 
 			if (TargetCharacter && WasAlive)
 			{
-				// This is the log statement for damage received. Turned off for live games.
-				//UE_LOG(LogTemp, Log, TEXT("%s() %s Damage Received: %f"), *FString(__FUNCTION__), *GetOwningActor()->GetName(), LocalDamageDone);
-
-				// Show damage number for the Source player unless it was self damage
+				// TODO：不接受自我伤害
 				if (SourceActor != TargetActor)
 				{
 					AVTPlayerController* PC = Cast<AVTPlayerController>(SourceController);
 					if (PC)
 					{
+						// 显示伤害数字UI
 						FGameplayTagContainer DamageNumberTags;
-
 						if (Data.EffectSpec.GetDynamicAssetTags().HasTag(HeadShotTag))
 						{
 							DamageNumberTags.AddTagFast(HeadShotTag);
 						}
-
+						else if (Data.EffectSpec.GetDynamicAssetTags().HasTag(BodyShotTag))
+						{
+							DamageNumberTags.AddTagFast(BodyShotTag);
+						}
+						else if (Data.EffectSpec.GetDynamicAssetTags().HasTag(LegShotTag))
+						{
+							DamageNumberTags.AddTagFast(LegShotTag);
+						}
 						PC->ShowDamageNumber(LocalDamageDone, TargetCharacter, DamageNumberTags);
 					}
 				}
@@ -181,7 +172,7 @@ void UVTAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 				}
 			}
 		}
-	}// Damage
+	} // Damage
 	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		// Handle other health changes.
@@ -230,7 +221,8 @@ void UVTAttributeSetBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION_NOTIFY(UVTAttributeSetBase, GoldBounty, COND_None, REPNOTIFY_Always);
 }
 
-void UVTAttributeSetBase::AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue, const FGameplayAttribute& AffectedAttributeProperty)
+void UVTAttributeSetBase::AdjustAttributeForMaxChange(FGameplayAttributeData& AffectedAttribute, const FGameplayAttributeData& MaxAttribute, float NewMaxValue,
+                                                      const FGameplayAttribute& AffectedAttributeProperty)
 {
 	UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent();
 	const float CurrentMaxValue = MaxAttribute.GetCurrentValue();

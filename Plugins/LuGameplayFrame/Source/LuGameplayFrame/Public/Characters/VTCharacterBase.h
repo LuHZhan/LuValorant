@@ -10,6 +10,10 @@
 
 #include "VTCharacterBase.generated.h"
 
+
+/**
+ * 01.30 完成伤害GE，完成全自动，单发，三连发射击模式，接入武器AS数据生成特定的反馈 √
+ */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVTCharacterDiedDelegate, AVTCharacterBase*, Character);
 
 USTRUCT(BlueprintType)

@@ -368,7 +368,7 @@ bool AVTHeroCharacter::AddWeaponToInventory(AVTWeapon* NewWeapon, bool bEquipWea
 			GEAmmo->Modifiers.SetNum(Idx + 1);
 
 			FGameplayModifierInfo& InfoPrimaryAmmo = GEAmmo->Modifiers[Idx];
-			InfoPrimaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetPrimaryClipAmmo());
+			// InfoPrimaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetPrimaryClipAmmo());
 			InfoPrimaryAmmo.ModifierOp = EGameplayModOp::Additive;
 			InfoPrimaryAmmo.Attribute = UVTAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->PrimaryAmmoType);
 		}
@@ -379,7 +379,7 @@ bool AVTHeroCharacter::AddWeaponToInventory(AVTWeapon* NewWeapon, bool bEquipWea
 			GEAmmo->Modifiers.SetNum(Idx + 1);
 
 			FGameplayModifierInfo& InfoSecondaryAmmo = GEAmmo->Modifiers[Idx];
-			InfoSecondaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetSecondaryClipAmmo());
+			// InfoSecondaryAmmo.ModifierMagnitude = FScalableFloat(NewWeapon->GetSecondaryClipAmmo());
 			InfoSecondaryAmmo.ModifierOp = EGameplayModOp::Additive;
 			InfoSecondaryAmmo.Attribute = UVTAmmoAttributeSet::GetReserveAmmoAttributeFromTag(NewWeapon->SecondaryAmmoType);
 		}
@@ -540,7 +540,7 @@ int32 AVTHeroCharacter::GetPrimaryClipAmmo() const
 {
 	if (CurrentWeapon)
 	{
-		return CurrentWeapon->GetPrimaryClipAmmo();
+		// return CurrentWeapon->GetPrimaryClipAmmo();
 	}
 
 	return 0;
@@ -550,7 +550,7 @@ int32 AVTHeroCharacter::GetMaxPrimaryClipAmmo() const
 {
 	if (CurrentWeapon)
 	{
-		return CurrentWeapon->GetMaxPrimaryClipAmmo();
+		// return CurrentWeapon->GetMaxPrimaryClipAmmo();
 	}
 
 	return 0;
@@ -574,7 +574,7 @@ int32 AVTHeroCharacter::GetSecondaryClipAmmo() const
 {
 	if (CurrentWeapon)
 	{
-		return CurrentWeapon->GetSecondaryClipAmmo();
+		// return CurrentWeapon->GetSecondaryClipAmmo();
 	}
 
 	return 0;
@@ -584,7 +584,7 @@ int32 AVTHeroCharacter::GetMaxSecondaryClipAmmo() const
 {
 	if (CurrentWeapon)
 	{
-		return CurrentWeapon->GetMaxSecondaryClipAmmo();
+		// return CurrentWeapon->GetMaxSecondaryClipAmmo();
 	}
 
 	return 0;
@@ -1106,8 +1106,8 @@ void AVTHeroCharacter::SetCurrentWeapon(AVTWeapon* NewWeapon, AVTWeapon* LastWea
 	// Cancel active weapon abilities
 	if (AbilitySystemComponent)
 	{
-		FGameplayTagContainer AbilityTagsToCancel = FGameplayTagContainer(WeaponAbilityTag);
-		AbilitySystemComponent->CancelAbilities(&AbilityTagsToCancel);
+		// FGameplayTagContainer AbilityTagsToCancel = FGameplayTagContainer(WeaponAbilityTag);
+		// AbilitySystemComponent->CancelAbilities(&AbilityTagsToCancel);
 	}
 
 	UnEquipWeapon(LastWeapon);
@@ -1136,7 +1136,7 @@ void AVTHeroCharacter::SetCurrentWeapon(AVTWeapon* NewWeapon, AVTWeapon* LastWea
 		{
 			PC->SetEquippedWeaponPrimaryIconFromSprite(CurrentWeapon->PrimaryIcon);
 			PC->SetEquippedWeaponStatusText(CurrentWeapon->StatusText);
-			PC->SetPrimaryClipAmmo(CurrentWeapon->GetPrimaryClipAmmo());
+			// PC->SetPrimaryClipAmmo(CurrentWeapon->GetPrimaryClipAmmo());
 			PC->SetPrimaryReserveAmmo(GetPrimaryReserveAmmo());
 			PC->SetHUDReticle(CurrentWeapon->GetPrimaryHUDReticleClass());
 		}

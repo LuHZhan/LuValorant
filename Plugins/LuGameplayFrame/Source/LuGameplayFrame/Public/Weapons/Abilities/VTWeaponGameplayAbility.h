@@ -22,8 +22,8 @@ public:
 	// virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	// virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
-
-	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="HitResult")
+	static bool IsHitTargetBodyName(const FGameplayAbilityTargetDataHandle& TargetDataHandle, const int Index, const FName& BodyName);
 
 	/**
 	 * 限制只有当前装备武器等于SourceObject时才能激活

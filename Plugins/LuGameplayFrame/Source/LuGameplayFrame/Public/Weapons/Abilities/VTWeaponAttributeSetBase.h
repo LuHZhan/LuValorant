@@ -28,8 +28,10 @@ public:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// using PreAttributeChangeFunc = void(*)(const FGameplayAttribute&, float&);
@@ -44,6 +46,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData HeadDamage;
 	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, HeadDamage)
+
+	// UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
+	// FGameplayAttributeData CurrentDamage;
+	// ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, CurrentDamage)
 
 	// ================ 枪械伤害 ================
 
@@ -82,8 +88,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, BaseSpread)
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
-	FGameplayAttributeData AimSpread;
-	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, AimSpread)
+	FGameplayAttributeData AimSpreadMod;
+	ATTRIBUTE_ACCESSORS(UVTWeaponAttributeSetBase, AimSpreadMod)
 
 	UPROPERTY(BlueprintReadOnly, Category="Weapon|Info")
 	FGameplayAttributeData SpreadIncrement;

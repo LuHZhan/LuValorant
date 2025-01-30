@@ -35,6 +35,7 @@ UVTGameplayAbility::UVTGameplayAbility()
 
 void UVTGameplayAbility::InputActionActivateAbility_Implementation(const FInputActionValue& Value)
 {
+	// ActivateAbility();
 	K2_ActivateAbility();
 }
 

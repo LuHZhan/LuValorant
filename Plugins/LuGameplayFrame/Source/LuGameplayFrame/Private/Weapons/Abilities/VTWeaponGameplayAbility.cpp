@@ -3,6 +3,7 @@
 
 #include "Weapons/Abilities/VTWeaponGameplayAbility.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 #include "Weapons/VTWeapon.h"
@@ -25,6 +26,15 @@ bool UVTWeaponGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHand
 		}
 	}
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
+bool UVTWeaponGameplayAbility::IsHitTargetBodyName(const FGameplayAbilityTargetDataHandle& TargetDataHandle, const int Index, const FName& BodyName)
+{
+	if (const FHitResult Hit = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, Index); Hit.IsValidBlockingHit())
+	{
+		return Hit.BoneName == BodyName;
+	}
+	return false;
 }
 
 
