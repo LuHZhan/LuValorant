@@ -7,12 +7,17 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "TimerManager.h"
+#include "Abilities/VTAbilityTypes.h"
 
 #include "VTCharacterBase.generated.h"
 
 
 /**
  * 01.30 完成伤害GE，完成全自动，单发，三连发射击模式，接入武器AS数据生成特定的反馈 √
+ * 01.31 完成血条，持续接入武器AS数据生成特定的反馈，完成冲刺 √
+ * 02.01 完成GA和IA的Activate，载入枪械开火抖动反馈和动画 √ 
+ * 02.02 完成枪械开火的常规抖动，接入技能CD面板 X
+ * 02.03 完成技能CD面板
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVTCharacterDiedDelegate, AVTCharacterBase*, Character);
 
@@ -88,7 +93,8 @@ public:
 	* Getters for attributes from GSAttributeSetBase
 	**/
 
-	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")
+	UFUNCTION
+	(BlueprintCallable, Category = "VT|Character|Attributes")
 	int32 GetCharacterLevel() const;
 
 	UFUNCTION(BlueprintCallable, Category = "VT|Character|Attributes")

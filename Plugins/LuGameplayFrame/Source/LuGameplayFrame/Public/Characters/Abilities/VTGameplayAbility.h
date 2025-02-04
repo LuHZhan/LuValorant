@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+
 #include "VTAbilityTypes.h"
 #include "Input/VTInputAction.h"
 #include "Weapons/Interface/VTGeneralInterface.h"
+
 #include "VTGameplayAbility.generated.h"
 
 class USkeletalMeshComponent;
@@ -78,15 +80,19 @@ public:
 	bool bIsOpenAction = true;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void InputActionActivateAbility(const FInputActionValue& Value);
+	void IATriggerEvent(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void IACompletedEvent(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void IACanceledEvent(const FInputActionValue& Value);
 
 	// ================ Input ================
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayEffects")
 	TMap<FGameplayTag, FVTGameplayEffectContainer> EffectContainerMap;
-
-	// If an ability is marked as 'ActivateAbilityOnGranted', activate them immediately when given here
-	// Epic's comment: Projects may want to initiate passives or do other "BeginPlay" type of logic here.
+	
 	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
@@ -96,9 +102,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
 	void OnPostOnGiveAbility(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec);
-	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
-	void Internal_ActivateAbility();
 	
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	FGameplayAbilityTargetDataHandle MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors);

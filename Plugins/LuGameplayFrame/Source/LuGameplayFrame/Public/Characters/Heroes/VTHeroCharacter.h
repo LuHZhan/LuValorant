@@ -228,6 +228,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
 	TArray<FString> StartupActions;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="VT|Character")
+	uint8 MoveDirection = 0;
+
+	/** 最后按下的方向键 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="VT|Character")
+	TEnumAsByte<EMovementKeys> LastMoveKey;
+
 	/** 绑定Actions */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -241,6 +248,9 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable)
 	void Move(const FInputActionValue& Value);
+
+	UFUNCTION(BlueprintCallable)
+	void MoveCancel(const FInputActionValue& Value);
 
 	/**
 	 * Hero Look
@@ -287,6 +297,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
 	bool bWasInFirstPersonPerspectiveWhenKnockedDown;
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere,Category="Valorant|Hero")
+	FVector FirstRelativeLocation;
 
 	bool bASCInputBound;
 

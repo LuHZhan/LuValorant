@@ -10,12 +10,26 @@
 #include "GameplayEffectTypes.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEffectStackChange.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEffectRemoved.h"
+// #include "Abilities/Tasks/AbilityTask_WaitGameplayEffectRemoved.h"
 #include "VTAbilityTypes.generated.h"
 
 class UVTAbilitySystemComponent;
 class UGameplayEffect;
 class UVTTargetType;
+
+UENUM(BlueprintType)
+enum EMovementKeys { None = 0, W = 1, A = 2, S = 4, D = 8 };
+
+UENUM(BlueprintType)
+enum EAbilityState
+{
+	Start,
+	CanUse,
+	Cooldown,
+	Silence,
+	Clear,
+};
+
 
 /**
  * 定义一个游戏效果列表、标签和目标信息的结构体
@@ -27,7 +41,9 @@ struct FVTGameplayEffectContainer
 	GENERATED_BODY()
 
 public:
-	FVTGameplayEffectContainer() {}
+	FVTGameplayEffectContainer()
+	{
+	}
 
 	/** Sets the way that targeting happens */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GameplayEffectContainer)
@@ -45,7 +61,9 @@ struct FVTGameplayEffectContainerSpec
 	GENERATED_BODY()
 
 public:
-	FVTGameplayEffectContainerSpec() {}
+	FVTGameplayEffectContainerSpec()
+	{
+	}
 
 	/** Computed target data */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GameplayEffectContainer)
@@ -83,27 +101,27 @@ UENUM(BlueprintType)
 enum class EVTAbilityInputID : uint8
 {
 	// 0 None
-	None				UMETA(DisplayName = "None"),
+	None UMETA(DisplayName = "None"),
 	// 1 Confirm
-	Confirm				UMETA(DisplayName = "Confirm"),
+	Confirm UMETA(DisplayName = "Confirm"),
 	// 2 Cancel
-	Cancel				UMETA(DisplayName = "Cancel"),
+	Cancel UMETA(DisplayName = "Cancel"),
 	// 3 Sprint
-	Sprint				UMETA(DisplayName = "Sprint"),
+	Sprint UMETA(DisplayName = "Sprint"),
 	// 4 Jump
-	Jump				UMETA(DisplayName = "Jump"),
+	Jump UMETA(DisplayName = "Jump"),
 	// 5 PrimaryFire
-	PrimaryFire			UMETA(DisplayName = "Primary Fire"),
+	PrimaryFire UMETA(DisplayName = "Primary Fire"),
 	// 6 SecondaryFire
-	SecondaryFire		UMETA(DisplayName = "Secondary Fire"),
+	SecondaryFire UMETA(DisplayName = "Secondary Fire"),
 	// 7 Alternate Fire
-	AlternateFire		UMETA(DisplayName = "Alternate Fire"),
+	AlternateFire UMETA(DisplayName = "Alternate Fire"),
 	// 8 Reload
-	Reload				UMETA(DisplayName = "Reload"),
+	Reload UMETA(DisplayName = "Reload"),
 	// 9 NextWeapon
-	NextWeapon			UMETA(DisplayName = "Next Weapon"), 
+	NextWeapon UMETA(DisplayName = "Next Weapon"),
 	// 10 PrevWeapon
-	PrevWeapon			UMETA(DisplayName = "Previous Weapon"),
+	PrevWeapon UMETA(DisplayName = "Previous Weapon"),
 	// 11 Interact
-	Interact			UMETA(DisplayName = "Interact")
+	Interact UMETA(DisplayName = "Interact")
 };

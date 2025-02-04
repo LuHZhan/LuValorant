@@ -33,10 +33,23 @@ UVTGameplayAbility::UVTGameplayAbility()
 	InteractingRemovalTag = FGameplayTag::RequestGameplayTag("State.InteractingRemoval");
 }
 
-void UVTGameplayAbility::InputActionActivateAbility_Implementation(const FInputActionValue& Value)
+void UVTGameplayAbility::IATriggerEvent_Implementation(const FInputActionValue& Value)
 {
 	// ActivateAbility();
-	K2_ActivateAbility();
+	// K2_ActivateAbility();
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo(); ASC != nullptr)
+	{
+		ASC->TryActivateAbilityByClass(GetClass(), true);
+	}
+}
+
+void UVTGameplayAbility::IACompletedEvent_Implementation(const FInputActionValue& Value)
+{
+}
+
+void UVTGameplayAbility::IACanceledEvent_Implementation(const FInputActionValue& Value)
+{
+	
 }
 
 void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -54,7 +67,7 @@ void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo,
 void UVTGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
-	if (ActorInfo->AbilitySystemComponent.IsValid())
+	if (ActorInfo->AbilitySystemComponent.IsValid() && bIsOpenAction)
 	{
 		const AVTHeroCharacter* Pawn = Cast<AVTHeroCharacter>(ActorInfo->AvatarActor.Get());
 		if (UEnhancedInputComponent* EnhancedInputComponent = Pawn->GetEnhancedInput())
@@ -63,7 +76,19 @@ void UVTGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInf
 				InputAction,
 				ActionTrigger,
 				this,
-				&UVTGameplayAbility::InputActionActivateAbility);
+				&UVTGameplayAbility::IATriggerEvent);
+
+			EnhancedInputComponent->BindAction(
+				InputAction,
+				ETriggerEvent::Completed,
+				this,
+				&UVTGameplayAbility::IACompletedEvent);
+
+			EnhancedInputComponent->BindAction(
+				InputAction,
+				ETriggerEvent::Canceled,
+				this,
+				&UVTGameplayAbility::IACanceledEvent);
 		}
 	}
 
@@ -78,11 +103,6 @@ void UVTGameplayAbility::OnPostOnAvatarSet_Implementation(FGameplayAbilityActorI
 {
 }
 
-void UVTGameplayAbility::Internal_ActivateAbility_Implementation()
-{
-	// TODO:这里调用的是蓝图下的ActivateAbility，直接调用ActivateAbility需要额外的参数
-	K2_ActivateAbility();
-}
 
 FGameplayAbilityTargetDataHandle UVTGameplayAbility::MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors)
 {

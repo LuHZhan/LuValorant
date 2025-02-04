@@ -18,6 +18,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	class AVTCharacterBase* OwningCharacter;
 
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void PostConstruct();
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetHealthPercentage(float HealthPercentage);
 

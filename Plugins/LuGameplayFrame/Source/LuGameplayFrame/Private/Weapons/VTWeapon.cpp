@@ -11,8 +11,11 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "VTBlueprintFunctionLibrary.h"
+#include "Camera/CameraShakeSourceComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/VTPlayerController.h"
+#include "Shakes/PerlinNoiseCameraShakePattern.h"
+#include "Weapons/VTPerlinNoiseCameraShakePattern.h"
 
 // Sets default values
 AVTWeapon::AVTWeapon()
@@ -64,7 +67,7 @@ AVTWeapon::AVTWeapon()
 
 	FireMode = FGameplayTag::RequestGameplayTag("Weapon.FireMode.None");
 	FireType = EFireMode::FullAuto;
-	
+
 	StatusText = DefaultStatusText;
 
 	RestrictedPickupTags.AddTag(FGameplayTag::RequestGameplayTag("State.Dead"));
@@ -80,6 +83,26 @@ AVTWeapon::AVTWeapon()
 		{FName("Aiming"), nullptr},
 		{FName("SwitchPreCost"), nullptr},
 	};
+}
+
+void AVTWeapon::StartCameraShake(float DeltaTime) const
+{
+	const APawn* Pawn = Cast<APawn>(GetOwner());
+	if (const APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
+	{
+		if (PC->PlayerCameraManager)
+		{
+			if (const UCameraShakeBase* ShakeInstance = PC->PlayerCameraManager->StartCameraShake(
+				InCameraShakeClass,
+				1.0f,
+				ECameraShakePlaySpace::CameraLocal
+			); ShakeInstance != nullptr)
+			{
+				UVTPerlinNoiseCameraShakePattern* Pattern = Cast<UVTPerlinNoiseCameraShakePattern>(ShakeInstance->GetRootShakePattern());
+				Pattern->StartFiring(DeltaTime);
+			}
+		}
+	}
 }
 
 UAbilitySystemComponent* AVTWeapon::GetAbilitySystemComponent() const

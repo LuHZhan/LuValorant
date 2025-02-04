@@ -54,8 +54,21 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTag WeaponTag;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	/** 开火模式 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon|Fire")
 	EFireMode FireType;
+
+	/** 开火抖动动画 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon|Fire")
+	UAnimMontage* FireAnimation;
+
+	/** 开火抖动反馈 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon|Shake")
+	TSubclassOf<UCameraShakeBase> InCameraShakeClass;
+
+	/** 激活开火抖动 */
+	UFUNCTION(BlueprintCallable, Category="Weapon|Fire")
+	void StartCameraShake(float DeltaTime) const;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Weapon")
 	FGameplayTagContainer RestrictedPickupTags;
@@ -130,18 +143,23 @@ public:
 
 	// ---------------- Function ----------------
 
+	/** 捡起武器 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void PickUp(AVTHeroCharacter* InCharacter);
 
+	/** 装备武器 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Weapon")
 	void Equip();
 
+	/** 卸下武器 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void UnEquip();
 
+	/**  */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	virtual void ResetWeapon();
 
+	/**  */
 	UFUNCTION(NetMulticast, Reliable)
 	void OnDropped(FVector NewLocation);
 	virtual void OnDropped_Implementation(FVector NewLocation);

@@ -89,12 +89,6 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	UIFloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	UIFloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
 
-	// UIFloatingStatusBarClass = StaticLoadClass(UObject::StaticClass(), nullptr, TEXT("/Game/GASShooter/UI/UI_FloatingStatusBar_Hero.UI_FloatingStatusBar_Hero_C"));
-	// if (!UIFloatingStatusBarClass)
-	// {
-	// 	UE_LOG(LogTemp, Error, TEXT("%s() Failed to find UIFloatingStatusBarClass. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
-	// }
-
 	AutoPossessAI = EAutoPossessAI::PlacedInWorld;
 	AIControllerClass = AVTHeroAIController::StaticClass();
 
@@ -106,6 +100,8 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	StartupActions.Add(TEXT("Move"));
 	StartupActions.Add(TEXT("Look"));
 	StartupActions.Add(TEXT("Jump"));
+
+	FirstRelativeLocation = FVector{-6.5, 15.5, -150};
 
 	// Setting
 	HeroSetting.LookScale = 0.5f;
@@ -141,6 +137,10 @@ void AVTHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					if (FuncHandler != nullptr && AVTHeroCharacter::IsInputActionValueFunc(FuncHandler, bIsParameterFunc))
 					{
 						EnhancedInputComponent->BindAction(ActionInfo.Action, ActionInfo.BindTriggerEventType, this, FName(ActionInfo.BindFunctionName));
+					}
+					if (ActionInfo.BindFunctionName == TEXT("Move"))
+					{
+						EnhancedInputComponent->BindAction(ActionInfo.Action, ETriggerEvent::Completed, this, &AVTHeroCharacter::MoveCancel);
 					}
 				}
 			}
@@ -235,8 +235,7 @@ void AVTHeroCharacter::KnockDown()
 			AbilitySystemComponent->ApplyGameplayEffectToSelf(Cast<UGameplayEffect>(KnockDownEffect->GetDefaultObject()), 1.0f, AbilitySystemComponent->MakeEffectContext());
 		}
 	}
-
-	SetHealth(GetMaxHealth());
+	// SetHealth(GetMaxHealth());
 	SetShield(0.0f);
 }
 
@@ -338,7 +337,7 @@ void AVTHeroCharacter::UpdatePersonMeshLocation_Implementation()
 {
 	if (IsInFirstPersonPerspective())
 	{
-		FirstPersonMesh->SetRelativeLocation(FVector{-6.5, 15.5, -150});
+		FirstPersonMesh->SetRelativeLocation(FirstRelativeLocation);
 	}
 }
 
@@ -680,9 +679,63 @@ void AVTHeroCharacter::Move(const FInputActionValue& Value)
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
-		// UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Move Input Value: %f -- %f"), MovementVector.X, MovementVector.Y));
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
+
+		if (MovementVector.X > 0)
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "D");
+			MoveDirection |= EMovementKeys::D;
+			LastMoveKey = EMovementKeys::D;
+		}
+		else if (MovementVector.X < 0)
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "A");
+			MoveDirection |= EMovementKeys::A;
+			LastMoveKey = EMovementKeys::A;
+		}
+		else if (MovementVector.Y > 0)
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "W");
+			MoveDirection |= EMovementKeys::W;
+			LastMoveKey = EMovementKeys::W;
+		}
+		else if (MovementVector.Y < 0)
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "S");
+			MoveDirection |= EMovementKeys::S;
+			LastMoveKey = EMovementKeys::S;
+		}
+	}
+}
+
+void AVTHeroCharacter::MoveCancel(const FInputActionValue& Value)
+{
+	const FVector2D MovementVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		if (MovementVector.X > 0)
+		{
+			MoveDirection &= ~EMovementKeys::D;
+		}
+		else if (MovementVector.X < 0)
+		{
+			MoveDirection &= ~EMovementKeys::A;
+		}
+		else if (MovementVector.Y > 0)
+		{
+			MoveDirection &= ~EMovementKeys::W;
+		}
+		else if (MovementVector.Y < 0)
+		{
+			MoveDirection &= ~EMovementKeys::S;
+		}
+		//TODO: MoveCancel并不能获取Value的值，没法分辨具体的键位
+		if (MoveDirection == 0)
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "Clear WASD");
+			LastMoveKey = EMovementKeys::None;
+		}
 	}
 }
 
@@ -937,12 +990,12 @@ void AVTHeroCharacter::InitializeFloatingStatusBar()
 			if (UIFloatingStatusBar && UIFloatingStatusBarComponent)
 			{
 				UIFloatingStatusBarComponent->SetWidget(UIFloatingStatusBar);
+				UIFloatingStatusBar->OwningCharacter = this;
+				UIFloatingStatusBar->PostConstruct();
 
-				// Setup the floating status bar
 				UIFloatingStatusBar->SetHealthPercentage(GetHealth() / GetMaxHealth());
 				UIFloatingStatusBar->SetManaPercentage(GetMana() / GetMaxMana());
 				UIFloatingStatusBar->SetShieldPercentage(GetShield() / GetMaxShield());
-				UIFloatingStatusBar->OwningCharacter = this;
 				UIFloatingStatusBar->SetCharacterName(CharacterName);
 			}
 		}

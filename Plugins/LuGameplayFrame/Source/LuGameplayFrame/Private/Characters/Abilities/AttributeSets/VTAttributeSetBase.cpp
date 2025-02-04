@@ -114,8 +114,8 @@ void UVTAttributeSetBase::PostGameplayEffectExecute(const FGameplayEffectModCall
 
 			if (DamageAfterShield > 0)
 			{
-				const float NewHealth = GetHealth() - DamageAfterShield;
-				SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
+				const float NewHealth = FMath::Clamp(GetHealth() - DamageAfterShield, 0.0f, GetMaxHealth());
+				SetHealth(NewHealth);
 			}
 
 			if (TargetCharacter && WasAlive)
