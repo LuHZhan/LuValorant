@@ -71,18 +71,18 @@ TArray<float> UAbilitiesWidget::GetActiveGameplayEffectDurationFromTag_Implement
 	return Result;
 }
 
-float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass_Implementation(APawn* TargetPawn, const TSubclassOf<UGameplayEffect> EffectClass)
+float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass_Implementation(APawn* TargetPawn, TSubclassOf<UGameplayEffect> EffectClass)
 {
-	if (UAbilitySystemComponent* ASC = GetAbilityComponent(TargetPawn); ASC != nullptr)
+	if (const UAbilitySystemComponent* Asc = GetAbilityComponent(TargetPawn); Asc != nullptr)
 	{
-		for (const FActiveGameplayEffectHandle& ActiveHandle : ASC->GetActiveGameplayEffects())
+		for (FActiveGameplayEffectHandle ActiveHandle : Asc->GetActiveGameplayEffects().GetAllActiveEffectHandles())
 		{
-			const FActiveGameplayEffect* ActiveEffect = ASC->GetActiveGameplayEffect(ActiveHandle);
-			if (ActiveEffect != nullptr && ActiveEffect->Spec.Def->StaticClass() == EffectClass)
+			const FActiveGameplayEffect* Effect = Asc->GetActiveGameplayEffect(ActiveHandle);
+			if (Effect->Spec.Def.GetClass() == EffectClass->GetClass())
 			{
-				if (ActiveEffect->GetDuration() > 0)
+				if (Effect->GetDuration() > 0)
 				{
-					return ActiveEffect->GetTimeRemaining(ASC->GetWorld()->GetTimeSeconds());
+					return Effect->GetTimeRemaining(Asc->GetWorld()->GetTimeSeconds());
 				}
 			}
 		}

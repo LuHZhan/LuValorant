@@ -7,6 +7,8 @@
 #include "Characters/Abilities/VTAbilityTypes.h"
 #include "AbilitiesWidget.generated.h"
 
+
+
 /**
  * 
  */
@@ -18,6 +20,10 @@ class LUGAMEPLAYFRAME_API UAbilitiesWidget : public UUserWidget
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Notify")
 	bool UpdateAbilityCount(EAbilityState NewState);
+
+	// --------------------------------
+	// EAbilityState Functions
+	// --------------------------------
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Notify")
 	EAbilityState GetCurAbilityState();
@@ -37,6 +43,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Dispose")
 	bool AbilityStateSwitchToClear(EAbilityState OldState);
 
+	// ================================
+	// EAbilityState Functions
+	// ================================
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category="Ability")
 	UAbilitySystemComponent* GetAbilityComponent(APawn* TargetPawn);
 
@@ -44,5 +54,17 @@ public:
 	TArray<float> GetActiveGameplayEffectDurationFromTag(APawn* TargetPawn, FGameplayTagContainer Tags);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, BlueprintNativeEvent, Category="Ability")
-	float GetActiveGameplayEffectDurationFromClass(APawn* TargetPawn, const TSubclassOf<UGameplayEffect> EffectClass);
+	float GetActiveGameplayEffectDurationFromClass(APawn* TargetPawn, TSubclassOf<UGameplayEffect> EffectClass);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability", meta=(ExposeOnSpawn="true"))
+	FGameplayTagContainer AbilityTags;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability")
+	FGameplayTag CooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown"));
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability")
+	FGameplayTag SilenceTag = FGameplayTag::RequestGameplayTag(FName("DeBuff.Silence"));
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability")
+	FGameplayTag ClearTag = FGameplayTag::RequestGameplayTag(FName("Clear"));
 };
