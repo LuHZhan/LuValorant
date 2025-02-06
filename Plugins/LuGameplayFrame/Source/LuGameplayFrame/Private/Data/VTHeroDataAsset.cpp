@@ -4,11 +4,20 @@
 #include "Data/VTHeroDataAsset.h"
 
 
+FAbilityInfo FHeroAbilityData::GetFAbilityInfo(const FGameplayTag TargetAbilityTag)
+{
+	if (HeroAbilities.HasTag(TargetAbilityTag))
+	{
+		return AbilityInfoMap[TargetAbilityTag];
+	}
+	return FAbilityInfo{};
+}
+
 FAbilityBaseInfo FHeroAbilityData::GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag)
 {
 	if (TargetHeroTag == HeroTag && HeroAbilities.HasTag(TargetAbilityTag))
 	{
-		return AbilityInfoMap[TargetAbilityTag].BaseInfo;
+		return GetFAbilityInfo(TargetAbilityTag).BaseInfo;
 	}
 	return FAbilityBaseInfo{};
 }
@@ -17,9 +26,26 @@ FAbilityPerformanceInfo FHeroAbilityData::GetFAbilityPerformanceInfo(const FGame
 {
 	if (TargetHeroTag == HeroTag && HeroAbilities.HasTag(TargetAbilityTag))
 	{
-		return AbilityInfoMap[TargetAbilityTag].PerformanceInfo;
+		return GetFAbilityInfo(TargetAbilityTag).PerformanceInfo;
 	}
 	return FAbilityPerformanceInfo{};
+}
+
+bool FHeroAbilityData::IsValid() const
+{
+	return HeroTag.IsValid();
+}
+
+FHeroAbilityData UVTHeroDataAsset::GetHeroAbilityData(const FGameplayTag HeroTag)
+{
+	for (FHeroAbilityData Data : HeroAbilityData)
+	{
+		if (Data.HeroTag == HeroTag)
+		{
+			return Data;
+		}
+	}
+	return FHeroAbilityData{};
 }
 
 FAbilityBaseInfo UVTHeroDataAsset::GetBaseInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag)

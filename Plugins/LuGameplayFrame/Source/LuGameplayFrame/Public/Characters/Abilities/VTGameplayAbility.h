@@ -8,6 +8,7 @@
 #include "VTAbilityTypes.h"
 #include "Input/VTInputAction.h"
 #include "Weapons/Interface/VTGeneralInterface.h"
+#include "Library/BFLCommon.h"
 
 #include "VTGameplayAbility.generated.h"
 
@@ -70,21 +71,27 @@ public:
 
 	// ---------------- Input ----------------
 
+	/** 绑定IA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input", meta=(EditCondition="bIsOpenAction"))
 	UVTInputAction* InputAction;
 
+	/** IA触发方式 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input", meta=(EditCondition="bIsOpenAction"))
 	ETriggerEvent ActionTrigger;
 
+	/** 是否开启IA触发 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability|Input")
 	bool bIsOpenAction = true;
 
+	/** 默认触发当前GA */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void IATriggerEvent(const FInputActionValue& Value);
 
+	/** 接口 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void IACompletedEvent(const FInputActionValue& Value);
 
+	/** 接口 */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void IACanceledEvent(const FInputActionValue& Value);
 

@@ -16,6 +16,7 @@ class LUGAMEPLAYFRAME_API UBFLCommon : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="GameplayEffect")
 	static bool GetAttributeValue(UAbilitySystemComponent* ASC, FGameplayAttribute Attribute, float& BaseValue, float& CurValue);
 

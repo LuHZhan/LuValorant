@@ -89,3 +89,24 @@ float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass_Implementation(
 	}
 	return 0.0f;
 }
+
+void UAbilitiesWidget::Reset_Implementation()
+{
+	Destruct();
+}
+
+
+void UAbilitiesWidget::LoadRelatedAbilityTags()
+{
+	const TArray<FGameplayTag> CurTags = {AbilityTag, CooldownTag, SilenceTag, ClearTag};
+	for (FGameplayTag Tag : CurTags)
+	{
+		if (Tag.IsValid())
+		{
+			if (!RelatedAbilityTags.HasTag(Tag))
+			{
+				RelatedAbilityTags.AddTag(Tag);
+			}
+		}
+	}
+}

@@ -22,10 +22,14 @@ bool UBFLCommon::GetAttributeValue(UAbilitySystemComponent* ASC, FGameplayAttrib
 UVTHeroDataAsset* UBFLCommon::GetDefaultHeroDataAssetSync()
 {
 	const FSoftObjectPath Path(TEXT("/LuGameplayFrame/Data/DA_HeroData.DA_HeroData"));
-	UVTHeroDataAsset* Asset = Cast<UVTHeroDataAsset>(StaticLoadObject(UDataAsset::StaticClass(), nullptr, *Path.ToString()));
-	if (!Asset)
+	static UVTHeroDataAsset* Asset = nullptr;
+	if (Asset == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s() Failed to find Object. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+		Asset = Cast<UVTHeroDataAsset>(StaticLoadObject(UDataAsset::StaticClass(), nullptr, *Path.ToString()));
+		if (!Asset)
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s() Failed to find Object. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+		}
 	}
 	return Asset;
 }

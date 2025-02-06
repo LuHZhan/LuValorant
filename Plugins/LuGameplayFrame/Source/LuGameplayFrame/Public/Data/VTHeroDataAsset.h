@@ -39,7 +39,7 @@ struct FAbilityBaseInfo
 	EAbilityType AbilityType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture* Texture;
+	UTexture2D* IconTexture;
 };
 
 USTRUCT(BlueprintType)
@@ -98,8 +98,10 @@ struct FHeroAbilityData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FGameplayTag, FAbilityInfo> AbilityInfoMap;
 
+	FAbilityInfo GetFAbilityInfo(const FGameplayTag TargetAbilityTag);
 	FAbilityBaseInfo GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag);
 	FAbilityPerformanceInfo GetFAbilityPerformanceInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag);
+	bool IsValid() const;
 };
 
 /**
@@ -114,11 +116,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FHeroAbilityData> HeroAbilityData;
 
-	UFUNCTION(BlueprintCallable,BlueprintPure,Category="Function")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Function")
+	FHeroAbilityData GetHeroAbilityData(const FGameplayTag HeroTag);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Function")
 	FAbilityBaseInfo GetBaseInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag);
-	
-	UFUNCTION(BlueprintCallable,BlueprintPure,Category="Function")
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Function")
 	FAbilityPerformanceInfo GetPerformanceInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag);
-	
+
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

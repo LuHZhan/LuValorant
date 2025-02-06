@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Characters/Abilities/VTAbilityTypes.h"
+#include "Data/VTHeroDataAsset.h"
 #include "AbilitiesWidget.generated.h"
-
 
 
 /**
@@ -18,8 +18,16 @@ class LUGAMEPLAYFRAME_API UAbilitiesWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	// virtual void NativeConstruct() override;
+
+	UFUNCTION(BlueprintCallable,CallInEditor)
+	void LoadRelatedAbilityTags();
+	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Notify")
 	bool UpdateAbilityCount(EAbilityState NewState);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Dispose")
+	void Reset();
 
 	// --------------------------------
 	// EAbilityState Functions
@@ -57,7 +65,13 @@ public:
 	float GetActiveGameplayEffectDurationFromClass(APawn* TargetPawn, TSubclassOf<UGameplayEffect> EffectClass);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability", meta=(ExposeOnSpawn="true"))
-	FGameplayTagContainer AbilityTags;
+	FAbilityBaseInfo AbilityInfo;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability")
+	FGameplayTagContainer RelatedAbilityTags;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability", meta=(ExposeOnSpawn="true"))
+	FGameplayTag AbilityTag;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Ability")
 	FGameplayTag CooldownTag = FGameplayTag::RequestGameplayTag(FName("Cooldown"));
