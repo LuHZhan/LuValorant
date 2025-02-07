@@ -1,0 +1,553 @@
+好的，我现在需要在Unreal Engine 5的Gameplay Abilities System（GAS）框架中实现一个游戏技能（GA），这个技能可以使用三次，每次使用后进入5秒的冷却时间。冷却结束后恢复一次使用次数，而且使用时必须至少有一次次数。我得仔细想想怎么实现这个逻辑。
+
+首先，我应该回忆一下GAS的基本结构。GA通常由GameplayAbility类派生，而冷却时间（Cooldown）和次数限制可能涉及到GameplayEffect（GE）。GAS中的能力通常会使用AttributeSet来管理属性，比如技能的使用次数，而冷却时间则可能通过GE的Duration和Cooldown标签来处理。
+
+首先，我需要考虑如何追踪这个技能的使用次数。可能需要一个自定义的Attribute，比如"SkillCharges"，初始值为3，最大值也是3。每次使用技能时，这个属性会减少1，当冷却结束后，再增加1。这样，当属性大于等于1时，技能才能被使用。
+
+接下来，冷却时间的处理。每次使用技能后，应该应用一个GameplayEffect，这个GE的作用是触发冷却，并且在5秒后触发一个回调，用来增加使用次数。但问题在于，冷却时间结束后如何自动增加次数。通常，GE的周期效果（Periodic Effect）可能不适用，因为这里需要在GE结束后执行一次恢复次数。不过GE的Duration结束后，可以触发一个事件，或者通过AbilityTask来等待冷却结束。
+
+或者，是否可以将冷却和次数恢复分开处理？每次使用技能后，启动一个5秒的计时器，当计时器结束时，增加次数。但如何在GAS中实现这个计时器呢？可能需要使用AbilityTask，比如WaitDelay，然后在回调中修改属性。
+
+不过，考虑到GAS的最佳实践，可能应该利用GameplayEffect的机制来处理冷却和次数恢复。例如，每次使用技能后，应用一个持续5秒的GameplayEffect，这个GE在结束时（通过Duration结束）触发一个Modifier，增加SkillCharges属性。同时，这个GE可能带有Cooldown标签，以防止在冷却期间再次使用技能。
+
+但这里有个问题：冷却时间是每次使用后单独计算的。例如，第一次使用后进入5秒冷却，期间即使有剩余次数，是否还能再次使用？根据需求，应该每次使用都会进入自己的CD，并且CD结束后恢复一次次数。所以可能三次使用可以连续进行，但每次使用都会触发独立的5秒CD，每个CD结束后恢复一次次数。这样，如果用户连续使用三次技能，那么会有三个并行的CD，每个结束后恢复一次次数。
+
+那这样的话，每个使用次数的恢复是独立的。这可能需要每个使用次数的冷却单独处理。但如何实现呢？
+
+可能的思路是，每当技能被使用时，减少SkillCharges属性，并启动一个5秒的计时器，当计时器结束时，增加SkillCharges属性。但如何确保在技能执行时处理这些逻辑？
+
+具体步骤可能如下：
+
+1. 在AttributeSet中定义一个属性，比如SkillCharges，初始值3，最大3，最小0。
+
+2. 在GA的CanActivateAbility条件中，检查SkillCharges是否>=1。
+
+3. 当GA激活时（Execute），消耗一次次数（SkillCharges -=1）。
+
+4. 然后，应用一个GE，该GE的持续时间是5秒。当这个GE结束时，SkillCharges +=1。同时，这个GE可能带有Tag来阻止在冷却期间再次使用？或者不需要，因为次数已经被消耗，即使CD未完成，只要次数足够，仍然可以使用。例如，如果有两次次数，可以连续使用两次，每次触发自己的CD，结束后各自恢复一次次数。
+
+不过，根据需求，使用时必须至少有一次次数。所以只要SkillCharges>=1，就可以使用，不管有没有CD在进行。但每个使用都会触发独立的CD，每个CD结束后恢复一次次数。这样，SkillCharges的恢复是随着每个CD的结束而增加。
+
+那这个时候，每个使用都会生成一个独立的CD处理，每个CD结束后恢复一次次数。这种情况下，可能需要为每次使用启动一个延迟任务，等待5秒后恢复次数。
+
+那如何在GA中处理这种情况呢？可能的步骤如下：
+
+在GA的ActivateAbility函数中：
+
+- 检查是否有足够的次数（SkillCharges >=1）。
+
+- 扣除次数。
+
+- 执行技能逻辑。
+
+- 启动一个异步任务（比如使用AbilityTask_WaitDelay），等待5秒后，增加次数（确保不超过最大值）。
+
+但这里需要注意，修改属性应该通过GameplayEffect，而不是直接修改，以保持网络同步和预测的正确性。
+
+所以，具体实现可能如下：
+
+1. 在GA的CanActivateAbility中，检查SkillCharges属性是否>=1。
+
+2. 在Execute中，应用一个GameplayEffect来减少SkillCharges属性1点。
+
+3. 同时，应用一个GameplayEffect用于触发冷却，这个GE的持续时间为5秒。当GE被移除时（即持续时间结束），应用另一个GameplayEffect来增加SkillCharges属性1点，或者直接在GE的结束时触发一个事件来处理。
+
+或者，可能不需要单独的GE来处理冷却，而是每次使用后，启动一个AbilityTask_WaitDelay，然后在回调中通过GameplayEffect增加次数。
+
+但问题在于，AbilityTask的生命周期与Ability的实例相关。如果GA是实例化的（每个执行都是一个新的实例），那么可能在延迟结束前，GA实例已经被销毁，导致回调无法执行。因此，可能需要将GA配置为非实例化（Instancing Policy设置为InstancedPerActor或者Reusable），这样GA的实例会持续存在，直到被结束。或者，在每次使用后，即使Ability结束，延迟任务仍然能够安全地执行。
+
+或者，是否可以将次数的恢复逻辑放在ASC（Ability System Component）的某处，而不是依赖Ability实例？
+
+另一个方法：每当使用技能时，扣除次数，并记录一个“充电中”的次数，然后通过一个GE来管理每个充电的恢复。例如，每次使用后，添加一个GE，这个GE持续5秒，当结束时，触发次数的恢复。例如，每个这样的GE结束时，SkillCharges +=1。这样，如果有三次使用，就会有三个GE，每个在5秒后恢复一次次数。这样，每个冷却都是独立的。
+
+这样，具体的步骤可能为：
+
+- 创建两个GameplayEffect：
+
+a. 一个用于立即扣除次数（Instant，Modifier为Subtract 1）。
+
+b. 另一个用于冷却和恢复次数，该GE的Duration为5秒，并且有一个Modifier在GE移除时（即持续时间结束时）增加1点SkillCharges。
+
+每次使用技能时，应用a和b两个GE。这样，每次使用会立即扣除次数，并启动一个5秒的计时器，当计时器结束时恢复次数。
+
+但如何确保在GE结束时增加次数？GE的Modifier通常是在应用时生效，但可以通过设置Modifier的生效时机为Periodic或者OnExpired。不过，UE的GameplayEffectModifier的ModifierOp通常是在应用时执行，或者周期性的。如果希望在GE结束时执行，可能需要使用Infinite类型的GE，并且通过手动移除它时触发。或者，使用Duration类型，然后在GE的结束时通过回调来增加次数。
+
+或者，设置GE的Duration为5秒，Modifier的生效条件为Executions — 当GE被移除时执行。这可能涉及到使用GameplayEffectExecutionCalculation，但比较复杂。
+
+另一个思路是，使用AttributeBased的Modifier，在GE被移除时触发一个Modifier。例如，在GE的定义中，添加一个Modifier，设置Modifier的生效时机为OnExpired，这样当GE结束时，应用该Modifier。例如，设置Modifier为Add +1到SkillCharges属性。这样，当GE结束（5秒后），SkillCharges会增加1。
+
+这样，每次使用技能时：
+
+1. 应用一个Instant GE，减少SkillCharges 1点。
+
+2. 应用一个Duration GE（5秒），该GE在结束时（OnExpired）增加SkillCharges 1点。
+
+这样，每次使用都会触发这两个GE，从而扣除次数并安排恢复。
+
+这样，SkillCharges的最小值可能设置为0，最大值3，初始3。每次使用扣除1点，当GE结束时加1点。这样，当连续使用三次，SkillCharges变为0，并且有三个GE在运行，每个在5秒后加1，最终恢复到3次。
+
+这样就能满足需求：
+
+- 使用三次后需要等待各自的CD恢复。
+
+- 每次CD恢复增加一次次数。
+
+- 使用时需要至少一次次数。
+
+但需要注意，当GE应用时，如何确保即使技能在冷却期间，只要次数足够，就可以再次使用。例如，如果有两次次数，可以连续使用两次，两次都进入各自的CD，每次CD结束后恢复一次次数。
+
+这样，在CanActivateAbility中，只需要检查SkillCharges是否>=1，而不需要检查冷却时间，因为冷却时间的存在不影响次数的剩余，只是每个使用后会进入独立的CD来恢复次数。也就是说，冷却时间的存在可能并不阻止技能的再次使用，只要次数足够。例如，当有3次次数时，玩家可以连续使用三次，三次都会进入各自的CD，每个CD结束后恢复一次次数，因此总次数在三次使用后变为0，之后每个5秒恢复一次，直到回到3次。
+
+不过，这样的设计是否符合需求？根据问题描述：“每次使用后会进入CD，CD结束会增加一次使用次数，使用时最少都需要一次次数”。也就是说，只要当前有至少一次次数，就可以使用，不管是否存在其他CD。例如，如果有两次次数，可以连续使用两次，每次使用后各自进入CD，结束后各自恢复一次，所以总次数在两次使用后变成0，但两次CD结束后恢复两次，所以最终回到两次？或者原题中的三次可能是一个最大值？
+
+原题中的描述是“可以使用三次，每次使用后会进入CD”，可能是指技能最多可以存储三次使用次数，每次使用消耗一次，之后进入CD，每次CD结束后恢复一次次数。所以，最大次数是3，每次使用消耗1次，CD结束后补充1次，但不能超过最大值。
+
+所以，当当前次数为3时，使用一次后变成2，然后进入CD，5秒后恢复一次，变成3（不能超过最大值）。这时候，如果立即使用三次，次数变为0，然后有三个CD，每个结束后加1，所以三次CD结束后次数回到3。
+
+因此，在恢复次数的时候，需要用Clamp到最大值。
+
+那么，如何实现这一点？
+
+在GE的Modifier中，当GE结束时，应用一个+1到SkillCharges，并且带有Clamp到Max的选项。
+
+在AttributeSet中，SkillCharges的设置应该有一个Max Attribute，比如MaxSkillCharges，默认3。这样，当应用Modifier时，使用规则如ClampToMax。
+
+因此，创建两个GameplayEffect：
+
+1. GE_ConsumeCharge: 立即扣除1次次数，类型为Instant，Modifier设置为SkillCharges -1，Modifier的Modifier Op为Additive，Clamped到Min和Max。
+
+2. GE_ChargeCooldown: 持续5秒，当结束时，应用Modifier为SkillCharges +1，同样Clamped到Max。
+
+这样，每次使用技能时，应用GE_ConsumeCharge和GE_ChargeCooldown。
+
+这样，当技能被激活时：
+
+- 检查是否有至少1次次数（由GE_ConsumeCharge应用后的结果决定，但需要确保在CanActivateAbility时已经满足）。
+
+不过，这里可能存在同步问题，因为GameplayEffect的应用是异步的，可能在CanActivateAbility时，Attribute还未被扣除。因此，应该在CanActivateAbility中检查当前的SkillCharges是否>=1，并且在Commit阶段再次检查，以确保在扣除前满足条件。
+
+但按照GAS的标准流程，CanActivateAbility是初步检查，而Commit是确认资源的地方。因此，在Commit阶段，需要确保扣除次数，这可能需要在Commit时应用GE_ConsumeCharge，或者在Ability的激活流程中处理。
+
+或者，更准确的做法是，在GA的激活过程中，先检查是否有足够的次数，然后扣除次数，应用GE，执行技能逻辑，然后安排恢复。
+
+因此，GA的流程可能是：
+
+在ActivateAbility函数中：
+
+1. 检查当前SkillCharges是否>=1。可以通过获取Attribute的值。
+
+2. 应用GE_ConsumeCharge，这会立即扣除次数。
+
+3. 执行技能的逻辑（比如播放动画，应用效果等）。
+
+4. 应用GE_ChargeCooldown，这个GE在5秒后结束，结束时增加次数。
+
+不过，这样可能需要确保在应用GE_ConsumeCharge之后，SkillCharges确实被扣除了，而CanActivateAbility在Commit时会再次检查条件。
+
+或者，更正确的方式是使用CommitAbility，在Commit时会检查所有的条件，包括Attribute是否满足。因此，在GA的CanActivateAbility中，可以返回Super::CanActivateAbility()以及其他条件（如SkillCharges >=1）。然后，在Commit阶段，由于Commit会处理消耗cost GE（如果有的话），所以可以将GE_ConsumeCharge作为Cost GE应用。
+
+这可能更符合GAS的设计模式。例如，GA的Cost GE可以设置为GE_ConsumeCharge，这样Commit时会自动应用这个GE，扣除次数，如果扣除失败（比如次数不足），则Commit失败，无法激活技能。
+
+然后，GE_ChargeCooldown作为Cooldown GE吗？或者，可能不是，因为Cooldown GE通常用于整个技能的冷却，而这里每次使用都会进入独立的冷却，恢复次数。所以，这里可能需要将GE_ChargeCooldown作为一个普通的GE应用，而不是作为GA的Cooldown GE。
+
+因此，整个流程如下：
+
+- 在GA的Cost Gameplay Effect Class中设置GE_ConsumeCharge，这样在Commit时会扣除次数。
+
+- 在GA的OnActivate事件中，应用GE_ChargeCooldown，这个GE持续5秒，当结束时增加次数。
+
+这样，每当GA成功Commit（即扣除次数），就会应用GE_ChargeCooldown，该GE在5秒后为SkillCharges加1。
+
+这样，只要SkillCharges >=1，GA就可以被激活，即使有其他GE_ChargeCooldown正在运行，因为每个使用都是独立的。
+
+此外，要确保GE_ChargeCooldown的Modifier在应用时，当GE结束时（Duration结束）执行。在GE的设置中，Modifier的生效时机需要设置为OnExpired，而不是Instant或Periodic。
+
+在UE编辑器中，创建GE_ChargeCooldown：
+
+- Duration Policy: Has Duration（设为5秒）
+
+- Modifiers:
+
+- 添加一个Modifier，目标属性为SkillCharges，Modifier Op为Additive，值为+1。
+
+- Modifier的生效时机会在Duration结束后的Expiration时生效吗？或者需要设置为Infinite，然后手动移除？
+
+可能需要重新考虑GE的设置。例如，Duration设为5秒，当GE结束时（不管是自然结束还是手动移除），应用Modifier。
+
+在UE的GameplayEffect中，Modifier的Application Timing选项中有几个选项，比如Instant（应用时立即生效）、Duration（在持续时间内周期生效）、Infinite（不会自动结束，需要手动移除）。
+
+但默认情况下，如果一个GE有Duration，并且Modifier的生效时机是Application，那么它会在应用时生效一次。但如果将Modifier的生效时机设置为Periodic，需要设置周期时间，但这里只需要在结束时生效一次。
+
+根据文档，GameplayEffect的Modifier默认是在应用时生效一次，如果Duration Policy为Instant。对于有Duration的GE，Modifier可以设置为在开始时执行，或者在结束时执行，或者周期执行。或者，是否可以通过设置Modifier的ModifierOp为Multiply或者Override，并在结束时恢复？
+
+或者，可能需要使用GameplayEffect的Stacking规则，但可能更复杂。
+
+或者，另一种方法：使用GameplayEffect的Expiration Effect。当GE自然结束时，可以触发另一个GE，这个GE负责增加次数。例如，GE_ChargeCooldown的Duration为5秒，当它结束时，应用GE_AddCharge，这个GE是Instant的，增加1点次数。
+
+这样，GE_ChargeCooldown的Expiration Effects列表中添加GE_AddCharge。这样，当GE_ChargeCooldown结束时，应用GE_AddCharge，从而恢复次数。
+
+这可能更可靠，因为Expiration Effect是UE支持的机制。因此，设置如下：
+
+GE_ChargeCooldown：
+
+- Duration Policy: Has Duration（5秒）
+
+- 无Modifiers
+
+- Expiration Effect: GE_AddCharge（Instant，Modifier +1到SkillCharges，Clamped）
+
+这样，每当GE_ChargeCooldown结束时，应用GE_AddCharge，增加次数。
+
+这样，在每次使用技能时，应用GE_ConsumeCharge（作为Cost GE）和GE_ChargeCooldown（作为常规GE）。
+
+这将确保每次使用后扣除次数，并安排一个5秒的GE，结束后恢复次数。
+
+现在，如何设置GE_AddCharge的Modifier，使其在应用时增加SkillCharges，并Clamp到最大值。
+
+同时，SkillCharges的Attribute在AttributeSet中应该设置为Clamped，最小值0，最大值3。这样，当GE_AddCharge应用+1时，会自动Clamp到最大值。
+
+现在，将这些GE配置到GA中：
+
+GA的Cost Gameplay Effect设置为GE_ConsumeCharge（Instant，-1）。
+
+在GA的激活逻辑中，应用GE_ChargeCooldown。例如，在ActivateAbility函数中，调用K2_ApplyGameplayEffectSpecToOwner或ApplyGameplayEffectToOwner，将GE_ChargeCooldown应用到自身。
+
+这样，整个流程为：
+
+1. 玩家尝试激活技能。
+
+2. GA的CanActivateAbility检查是否有足够的次数（SkillCharges >=1）。
+
+3. CommitAbility，这会应用Cost GE（GE_ConsumeCharge），扣除次数。
+
+4. 应用GE_ChargeCooldown到自身，持续5秒。
+
+5. 执行技能的其他逻辑（动画、效果等）。
+
+6. 当GE_ChargeCooldown结束时，触发GE_AddCharge，恢复次数。
+
+这样，每次使用都会扣除一次次数，并安排一次恢复，每次恢复独立处理。
+
+此时，SkillCharges的值会被正确维护，使用次数在每次CD结束后增加，且不超过最大3次。
+
+需要注意的点：
+
+- GE_AddCharge的Modifier必须正确设置为Add +1，并且Attribute的Clamping设置正确。
+
+- GE_ChargeCooldown的Expiration Effect必须正确引用GE_AddCharge。
+
+- 在应用GE_ChargeCooldown时，必须确保应用到正确的目标（即技能的使用者）。
+
+另外，关于网络同步和预测的问题，GAS通常会在客户端和服务器之间同步Attribute的变化，但需要确保所有的GameplayEffect都正确配置为Replicates，并且预测（Prediction）是否处理得当。例如，扣除次数可能需要进行预测，让客户端立即显示次数减少，而不需要等待服务器的确认。这可能涉及到在Cost GE中使用预测类型（Predictable），而恢复次数的GE也需要适当处理预测。
+
+但具体如何配置这些可能需要更深入的知识。例如，GE_ConsumeCharge和GE_AddCharge是否设置为Predictable，以确保客户端能立即响应。
+
+不过，这可能超出了当前问题的范围。假设这些GE正确配置，网络同步没有问题。
+
+总结实现步骤：
+
+1. 创建AttributeSet，包含SkillCharges属性，Clamp到0-3。
+
+2. 创建GE_ConsumeCharge：Instant，Modifier SkillCharges -1，Clamp.
+
+3. 创建GE_AddCharge：Instant，Modifier SkillCharges +1，Clamp.
+
+4. 创建GE_ChargeCooldown：Duration 5秒，Expiration Effect设置为GE_AddCharge.
+
+5. 创建GA，设置其Cost GE为GE_ConsumeCharge。
+
+6. 在GA的ActivateAbility函数中，应用GE_ChargeCooldown到Owner.
+
+7. 在CanActivateAbility中检查SkillCharges >=1.
+
+这样，每次使用技能时，会消耗一次次数，并开始一个5秒的计时器，计时器结束后恢复一次次数。可以连续使用三次，之后每次CD恢复一次，直到回到三次。
+
+现在，测试可能的用例：
+
+- 初始有3次，使用一次，剩余2次，CD5秒。CD结束后加1，变成3次（因为原先是2，加1到3）。
+
+- 如果连续使用三次，次数变为0，三个CD进行中。每个CD结束加1，三次结束后回到3次。
+
+- 在使用两次后，剩余1次，两次CD进行中。如果此时再次使用，次数变为0，第三次CD开始。在5秒后，三次CD依次结束，每次加1，最终回到3次。
+
+这样，满足题目的要求。
+
+现在，如何在UE5中实现这些步骤？
+
+具体步骤：
+
+1. 创建AttributeSet子类，例如MyAttributeSet，包含：
+
+- SkillCharges属性，FGameplayAttributeData类型。
+
+- MaxSkillCharges属性，同样FGameplayAttributeData，默认3.
+
+在对应的宏中定义ATTRIBUTE_ACCESSORS，并设置Replication为ReplicatedUsing=OnRep_SkillCharges等。
+
+需要确保SkillCharges被Clamp到0和MaxSkillCharges之间。这可以通过在PreAttributeChange函数中处理：
+
+void UMyAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+
+{
+
+Super::PreAttributeChange(Attribute, NewValue);
+
+if (Attribute == GetSkillChargesAttribute())
+
+{
+
+// Clamp the value between 0 and MaxSkillCharges
+
+NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxSkillCharges());
+
+}
+
+else if (Attribute == GetMaxSkillChargesAttribute())
+
+{
+
+// Ensure Max is at least 1?
+
+}
+
+}
+
+2. 创建GE_ConsumeCharge：
+
+- Duration Policy: Instant
+
+- Modifiers: Add a modifier targeting SkillCharges, Scalable Float Magnitude = -1.0, Modifier Op = Additive.
+
+- 确保这个GE的设置为Replicates，并且应用到Owner.
+
+3. 创建GE_AddCharge：
+
+- Duration Policy: Instant
+
+- Modifiers: Add a modifier targeting SkillCharges, Scalable Float Magnitude = +1.0, Modifier Op = Additive.
+
+4. 创建GE_ChargeCooldown：
+
+- Duration Policy: Has Duration, 5 seconds.
+
+- 无Modifiers.
+
+- Expiration Effects: 添加GE_AddCharge.
+
+- 可能需要设置Application为Apply to Self.
+
+5. 创建GA：
+
+- 在Ability的类设置中，设置Ability Tags等。
+
+- Cost Gameplay Effect Class设置为GE_ConsumeCharge.
+
+- 不需要设置Cooldown GE，因为冷却由GE_ChargeCooldown处理。
+
+- 在ActivateAbility函数中，应用GE_ChargeCooldown：
+
+UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+if (ASC)
+
+{
+
+FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+
+FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(GE_ChargeCooldown, 1, ContextHandle);
+
+if (SpecHandle.IsValid())
+
+{
+
+ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+}
+
+}
+
+- 然后执行技能的其他逻辑，如播放蒙太奇，等待事件等。
+
+6. 在GA的CanActivateAbility函数中，检查SkillCharges是否>=1：
+
+bool UMyGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+
+{
+
+if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+
+{
+
+return false;
+
+}
+
+UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+
+if (!ASC)
+
+{
+
+return false;
+
+}
+
+const UMyAttributeSet* AttributeSet = ASC->GetSet<UMyAttributeSet>();
+
+if (!AttributeSet)
+
+{
+
+return false;
+
+}
+
+return AttributeSet->GetSkillCharges() >= 1.0f;
+
+}
+
+此外，需要确保在CommitAbility时，Cost GE（GE_ConsumeCharge）能够成功应用。如果由于某种原因SkillCharges在Commit时已经不足，Commit会失败，从而阻止技能激活。
+
+这样，整个逻辑应该可以工作。需要注意的是，应用GE_ChargeCooldown可能会被网络同步或预测影响，所以需要测试不同情况下的表现，确保客户端和服务器的同步正确。
+
+可能还需要处理GE_AddCharge的Clamping，确保SkillCharges不会超过MaxSkillCharges，这已经在AttributeSet的PreAttributeChange中处理了。
+
+总结：通过Cost GE扣除次数，应用一个带有Expiration Effect的GE来在5秒后恢复次数，这样每次使用都会独立处理CD，并且次数恢复正确。
+
+在UE5的GAS框架中，实现一个可使用三次、每次使用后进入独立CD的技能，可以通过以下步骤实现：
+
+1. 创建属性集（AttributeSet）
+定义技能次数属性并设置数值钳制：
+
+cpp
+复制
+// MyAttributeSet.h
+#include "AttributeSet.h"
+#include "MyAttributeSet.generated.h"
+
+UCLASS()
+class UMyAttributeSet : public UAttributeSet
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+    FGameplayAttributeData SkillCharges;
+    ATTRIBUTE_ACCESSORS(UMyAttributeSet, SkillCharges)
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+    FGameplayAttributeData MaxSkillCharges;
+    ATTRIBUTE_ACCESSORS(UMyAttributeSet, MaxSkillCharges)
+
+    virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+};
+
+// MyAttributeSet.cpp
+void UMyAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+    Super::PreAttributeChange(Attribute, NewValue);
+
+    if (Attribute == GetSkillChargesAttribute())
+    {
+        NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxSkillCharges());
+    }
+}
+2. 创建GameplayEffects
+创建三个GameplayEffect（GE）：
+
+GE_ConsumeCharge（消耗次数）
+类型: Instant
+
+效果: SkillCharges -1
+
+GE_AddCharge（恢复次数）
+类型: Instant
+
+效果: SkillCharges +1
+
+GE_ChargeCooldown（充能冷却）
+类型: Duration（5秒）
+
+过期效果: 添加GE_AddCharge
+
+3. 实现GameplayAbility逻辑
+配置技能并处理充能逻辑：
+
+cpp
+复制
+// MyGameplayAbility.h
+UCLASS()
+class UMyGameplayAbility : public UGameplayAbility
+{
+    GENERATED_BODY()
+
+public:
+    virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
+    
+protected:
+    UPROPERTY(EditDefaultsOnly, Category = "Effects")
+    TSubclassOf<UGameplayEffect> CooldownEffectClass;
+
+    virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+};
+
+// MyGameplayAbility.cpp
+bool UMyGameplayAbility::CanActivateAbility(...) 
+{
+    // 基础检查
+    if (!Super::CanActivateAbility(...)) return false;
+    
+    // 获取属性组件
+    UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+    const UMyAttributeSet* Attributes = ASC->GetSet<UMyAttributeSet>();
+    
+    return Attributes && Attributes->GetSkillCharges() >= 1.0f;
+}
+
+void UMyGameplayAbility::ActivateAbility(...)
+{
+    // 应用冷却GE
+    if (CooldownEffectClass)
+    {
+        FGameplayEffectSpecHandle SpecHandle = 
+            GetAbilitySystemComponentFromActorInfo()->MakeOutgoingSpec(
+                CooldownEffectClass, 1, GetCurrentActorInfo()->AbilitySystemComponent->MakeEffectContext());
+        
+        if (SpecHandle.IsValid())
+        {
+            ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+        }
+    }
+    
+    // 执行技能逻辑（动画、粒子等）
+    CommitAbility(Handle, ActorInfo, ActivationInfo);
+    
+    // 结束技能（非持续型技能）
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+4. 配置技能蓝图
+Cost GE: 设置为GE_ConsumeCharge
+
+CooldownEffectClass: 设置为GE_ChargeCooldown
+
+触发逻辑: 通过输入绑定触发能力
+
+5. 实现效果
+技能使用: 每次消耗1次充能
+
+独立CD: 每次使用后生成5秒独立计时器
+
+充能恢复: 每个计时器结束恢复1次充能
+
+上限控制: 充能数不超过3次
+
+注意事项
+网络同步: 确保所有GE设置为Replicates
+
+预测支持: 对关键GE启用PredictionType
+
+UI更新: 监听SkillCharges属性变化更新UI
+
+冷却提示: 可通过剩余Duration显示单个充能恢复进度
+
+此方案通过GAS的Attribute-Event机制实现了多充能技能的独立冷却管理，每个充能状态独立计算，确保技能使用逻辑清晰可靠。

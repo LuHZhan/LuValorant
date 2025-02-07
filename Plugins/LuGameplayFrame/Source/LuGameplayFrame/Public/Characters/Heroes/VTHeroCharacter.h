@@ -50,6 +50,10 @@ struct FInputActionInfo
 {
 	GENERATED_BODY()
 
+	FInputActionInfo(): Action(nullptr), BindFunctionName(NAME_None), BindTriggerEventType(ETriggerEvent::Triggered)
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Input")
 	UInputAction* Action;
 
@@ -298,7 +302,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
 	bool bWasInFirstPersonPerspectiveWhenKnockedDown;
 
-	UPROPERTY(BlueprintReadWrite,EditAnywhere,Category="Valorant|Hero")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Valorant|Hero")
 	FVector FirstRelativeLocation;
 
 	bool bASCInputBound;

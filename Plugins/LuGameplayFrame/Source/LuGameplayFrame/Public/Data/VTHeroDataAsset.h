@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Characters/Abilities/VTAbilityTypes.h"
 #include "Engine/DataAsset.h"
 #include "VTHeroDataAsset.generated.h"
 
@@ -14,6 +15,7 @@ class UVTGameplayAbility;
 UENUM(BlueprintType)
 enum class EAbilityType : uint8
 {
+	None UMETA(DisplayName = "None"),
 	Buff UMETA(DisplayName = "Buff"),
 	Displacement UMETA(DisplayName = "Displacement"),
 	Damage UMETA(DisplayName = "Damage"),
@@ -25,6 +27,15 @@ USTRUCT(BlueprintType)
 struct FAbilityBaseInfo
 {
 	GENERATED_BODY()
+
+	FAbilityBaseInfo(): AbilityStartCount(0), bIsCooldownActive(false), CooldownDuration(0), AbilityType(EAbilityType::None), IconTexture(nullptr)
+	{
+		AbilityStateTags = {
+			{EAbilityState::Cooldown, FGameplayTag{}},
+			{EAbilityState::Silence, FGameplayTag::RequestGameplayTag(FName("DeBuff.Silence"))},
+			{EAbilityState::Clear, FGameplayTag::RequestGameplayTag(FName("Clear"))},
+		};
+	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int AbilityStartCount;
@@ -40,6 +51,9 @@ struct FAbilityBaseInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* IconTexture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<TEnumAsByte<EAbilityState>, FGameplayTag> AbilityStateTags;
 };
 
 USTRUCT(BlueprintType)
@@ -52,14 +66,16 @@ struct FAbilityPerformanceInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag AbilityTag;
-
-	/** GA入口 */
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	TSubclassOf<UVTGameplayAbility> Ability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	TArray<TSubclassOf<UGameplayEffect>> Effects;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
+	TSubclassOf<UGameplayEffect> CostEffect;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	TSubclassOf<UGameplayEffect> CooldownEffect;
 

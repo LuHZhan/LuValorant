@@ -7,8 +7,28 @@
 #include "AbilitySystemInterface.h"
 #include "Kismet/GameplayStatics.h"
 
+void UAbilitiesWidget::ReInitWidget_Implementation()
+{
+	LoadAbilitiesStateTag();
+	LoadListenAbilityTags();
 
-bool UAbilitiesWidget::UpdateAbilityCount_Implementation(EAbilityState NewState)
+	AbilitiesTagWithState = {
+		{CooldownTag, EAbilityState::Cooldown},
+		{SilenceTag, EAbilityState::Silence},
+		{ClearTag, EAbilityState::Clear},
+	};
+
+	if (WeakAbilitySystemComponentPtr.IsValid() && ListenAbilityTags.Num() > 0)
+	{
+		for (const FGameplayTag Tag : ListenAbilityTags)
+		{
+			WeakAbilitySystemComponentPtr.Get()->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved)
+			                             .AddUObject(this, &UAbilitiesWidget::TagChanged);
+		}
+	}
+}
+
+bool UAbilitiesWidget::UpdateAbilityState_Implementation(EAbilityState NewState)
 {
 	if (NewState == EAbilityState::CanUse)
 	{
@@ -38,22 +58,31 @@ bool UAbilitiesWidget::UpdateAbilityCount_Implementation(EAbilityState NewState)
 	return false;
 }
 
-UAbilitySystemComponent* UAbilitiesWidget::GetAbilityComponent_Implementation(APawn* TargetPawn)
+UAbilitySystemComponent* UAbilitiesWidget::SetAbilityComponentFromPawn(APawn* TargetPawn)
 {
 	if (TargetPawn->GetClass()->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
 	{
 		if (const IAbilitySystemInterface* SystemInterface = Cast<IAbilitySystemInterface>(TargetPawn); SystemInterface != nullptr)
 		{
-			return SystemInterface->GetAbilitySystemComponent();
+			WeakAbilitySystemComponentPtr = SystemInterface->GetAbilitySystemComponent();
 		}
 	}
-	return nullptr;
+	return WeakAbilitySystemComponentPtr.Get();
 }
 
-TArray<float> UAbilitiesWidget::GetActiveGameplayEffectDurationFromTag_Implementation(APawn* TargetPawn, FGameplayTagContainer Tags)
+UAbilitySystemComponent* UAbilitiesWidget::SetAbilityComponent(UAbilitySystemComponent* Ptr)
+{
+	if (Ptr != nullptr)
+	{
+		WeakAbilitySystemComponentPtr = Ptr;
+	}
+	return WeakAbilitySystemComponentPtr.Get();
+}
+
+TArray<float> UAbilitiesWidget::GetActiveGameplayEffectDurationFromTag(APawn* TargetPawn, FGameplayTagContainer Tags)
 {
 	TArray<float> Result = {};
-	if (const UAbilitySystemComponent* ASC = GetAbilityComponent(TargetPawn); ASC != nullptr)
+	if (const UAbilitySystemComponent* ASC = SetAbilityComponentFromPawn(TargetPawn); ASC != nullptr)
 	{
 		TArray<FActiveGameplayEffectHandle> Effects = ASC->GetActiveEffects(FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(Tags));
 		if (Effects.Num() > 0)
@@ -71,9 +100,9 @@ TArray<float> UAbilitiesWidget::GetActiveGameplayEffectDurationFromTag_Implement
 	return Result;
 }
 
-float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass_Implementation(APawn* TargetPawn, TSubclassOf<UGameplayEffect> EffectClass)
+float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass(APawn* TargetPawn, TSubclassOf<UGameplayEffect> EffectClass)
 {
-	if (const UAbilitySystemComponent* Asc = GetAbilityComponent(TargetPawn); Asc != nullptr)
+	if (const UAbilitySystemComponent* Asc = SetAbilityComponentFromPawn(TargetPawn); Asc != nullptr)
 	{
 		for (FActiveGameplayEffectHandle ActiveHandle : Asc->GetActiveGameplayEffects().GetAllActiveEffectHandles())
 		{
@@ -92,21 +121,80 @@ float UAbilitiesWidget::GetActiveGameplayEffectDurationFromClass_Implementation(
 
 void UAbilitiesWidget::Reset_Implementation()
 {
+	for (const FGameplayTag Tag : ListenAbilityTags)
+	{
+		WeakAbilitySystemComponentPtr->RegisterGameplayTagEvent(Tag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
+	}
 	Destruct();
 }
 
+void UAbilitiesWidget::TagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	OnTranspondToStateSwitch_Implementation(Tag, NewCount);
+	if (NewCount > 0)
+	{
+		OnGameplayTagAdded.Broadcast(Tag);
+	}
+	else
+	{
+		OnGameplayTagAddedRemoved.Broadcast(Tag);
+	}
+}
 
-void UAbilitiesWidget::LoadRelatedAbilityTags()
+void UAbilitiesWidget::OnTranspondToStateSwitch_Implementation(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount > 0)
+	{
+		if (AbilitiesTagWithState.Contains(Tag))
+		{
+			UpdateAbilityState(AbilitiesTagWithState[Tag]);
+		}
+	}
+	else
+	{
+		if (AbilitiesTagWithState.Contains(Tag) && Tag != ClearTag)
+		{
+			UpdateAbilityState(EAbilityState::CanUse);
+		}
+	}
+}
+
+
+void UAbilitiesWidget::LoadAbilitiesStateTag()
+{
+	for (auto Info : AbilityInfo.AbilityStateTags)
+	{
+		if (Info.Key == EAbilityState::Cooldown)
+		{
+			CooldownTag = Info.Value;
+		}
+		else if (Info.Key == EAbilityState::Silence)
+		{
+			SilenceTag = Info.Value;
+		}
+		else if (Info.Key == EAbilityState::Clear)
+		{
+			ClearTag = Info.Value;
+		}
+	}
+}
+
+void UAbilitiesWidget::LoadListenAbilityTags()
 {
 	const TArray<FGameplayTag> CurTags = {AbilityTag, CooldownTag, SilenceTag, ClearTag};
 	for (FGameplayTag Tag : CurTags)
 	{
 		if (Tag.IsValid())
 		{
-			if (!RelatedAbilityTags.HasTag(Tag))
+			if (!ListenAbilityTags.HasTag(Tag))
 			{
-				RelatedAbilityTags.AddTag(Tag);
+				ListenAbilityTags.AddTag(Tag);
 			}
 		}
 	}
+}
+
+UAbilitySystemComponent* UAbilitiesWidget::GetWeakAbilitySystemComponent()
+{
+	return WeakAbilitySystemComponentPtr.Get();
 }

@@ -31,8 +31,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	UAbilitiesWidget* CreateWidget(FGameplayTag AbilityTag, bool& IsCreate);
 
-	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
-	void LoadAbilitiesWidgetToPanel();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void LoadAbilitiesWidgetToPanel(bool bIsClearChild = false);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void SetAbilitiesPanel(UPanelWidget* Panel);
@@ -46,7 +46,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAbilityComponent(UAbilitySystemComponent* Component)
 	{
-		WeakComponent = Component;
+		WeakAbilitySystemComponentPtr = Component;
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
@@ -67,6 +67,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
 	TMap<FGameplayTag, FAbilityBaseInfo> CurAbilityBaseInfos;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
+	TMap<FGameplayTag, FAbilityPerformanceInfo> CurAbilityPerformanceInfos;
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FGameplayTag, UAbilitiesWidget*> CurAbilityWidgets;
@@ -78,6 +81,7 @@ public:
 	// Cur Data
 	// ================================
 
-private:
-	TWeakObjectPtr<UAbilitySystemComponent> WeakComponent;
+protected:
+	UPROPERTY(BlueprintReadWrite)
+	TWeakObjectPtr<UAbilitySystemComponent> WeakAbilitySystemComponentPtr;
 };

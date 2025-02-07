@@ -101,7 +101,6 @@ public:
 	TMap<FGameplayTag, FVTGameplayEffectContainer> EffectContainerMap;
 	
 	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")

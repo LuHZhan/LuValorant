@@ -27,22 +27,28 @@ void UHeroState::UpdateAbilitys()
 			for (FGameplayTag AbilityTag : CurHeroAbilities)
 			{
 				CurAbilityBaseInfos.Add(AbilityTag, HeroAbilityData.GetFAbilityBaseInfo(HeroTag, AbilityTag));
+				CurAbilityPerformanceInfos.Add(AbilityTag, HeroAbilityData.GetFAbilityPerformanceInfo(HeroTag, AbilityTag));
 			}
 		}
-	}
 
-	for (auto& Ability : CurAbilityBaseInfos)
-	{
-		bool bIsCreateTag = false;
-		UAbilitiesWidget* Ptr = nullptr;
-		if (Ptr = CreateWidget(Ability.Key, bIsCreateTag); Ptr == nullptr || bIsCreateTag == false)
+		for (auto& Ability : CurAbilityBaseInfos)
 		{
-			UE_LOG(LogTemp, Error, TEXT("%s() Create UAbilitiesWidget failed"), *FString(__FUNCTION__));
-			continue;
+			bool bIsCreateTag = false;
+			UAbilitiesWidget* Ptr = nullptr;
+			if (Ptr = CreateWidget(Ability.Key, bIsCreateTag); Ptr == nullptr || bIsCreateTag == false)
+			{
+				UE_LOG(LogTemp, Error, TEXT("%s() Create UAbilitiesWidget failed"), *FString(__FUNCTION__));
+				continue;
+			}
+			
+			Ptr->SetAbilityComponent(GetAbilityComponent());
+			// Ptr->LoadAbilitiesStateTag(Ability.Value);
+			Ptr->ReInitWidget();
+			
+			CurAbilityWidgets.Add(Ability.Key, Ptr);
 		}
-		CurAbilityWidgets.Add(Ability.Key, Ptr);
+		LoadAbilitiesWidgetToPanel();
 	}
-	LoadAbilitiesWidgetToPanel();
 }
 
 void UHeroState::ResetAbilitys()
@@ -65,17 +71,21 @@ void UHeroState::ResetAbilitys()
 
 UAbilitySystemComponent* UHeroState::GetAbilityComponent() const
 {
-	if (WeakComponent.IsValid())
+	if (WeakAbilitySystemComponentPtr.IsValid())
 	{
-		return WeakComponent.Get();
+		return WeakAbilitySystemComponentPtr.Get();
 	}
 	return nullptr;
 }
 
-void UHeroState::LoadAbilitiesWidgetToPanel_Implementation()
+void UHeroState::LoadAbilitiesWidgetToPanel_Implementation(bool bIsClearChild)
 {
 	if (AbilitysPanel != nullptr)
 	{
+		if (!bIsClearChild)
+		{
+			AbilitysPanel->ClearChildren();
+		}
 		for (const auto& Ability : CurAbilityWidgets)
 		{
 			AbilitysPanel->AddChild(Ability.Value);
