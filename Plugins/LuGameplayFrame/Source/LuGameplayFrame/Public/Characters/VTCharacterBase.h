@@ -136,9 +136,7 @@ protected:
 	FTimerHandle DamageNumberTimer;
 
 
-	/**
-	 *  初始AS
-	 */
+	/** 初始AS */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "VT|Abilities")
 	class UVTAttributeSetBase* AttributeSetBase;
 

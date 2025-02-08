@@ -37,8 +37,8 @@
 
 AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	BaseTurnRate = 45.0f;
-	BaseLookUpRate = 45.0f;
+	// BaseTurnRate = 45.0f;
+	// BaseLookUpRate = 45.0f;
 	bStartInFirstPersonPerspective = true;
 	bIsFirstPersonPerspective = false;
 	bWasInFirstPersonPerspectiveWhenKnockedDown = false;
@@ -96,15 +96,20 @@ AVTHeroCharacter::AVTHeroCharacter(const class FObjectInitializer& ObjectInitial
 	KnockedDownTag = FGameplayTag::RequestGameplayTag("State.KnockedDown");
 	InteractingTag = FGameplayTag::RequestGameplayTag("State.Interacting");
 
+	// Input
 	StartupActions.Empty();
 	StartupActions.Add(TEXT("Move"));
 	StartupActions.Add(TEXT("Look"));
 	StartupActions.Add(TEXT("Jump"));
 
+	// Camera
 	FirstRelativeLocation = FVector{-6.5, 15.5, -150};
 
 	// Setting
 	HeroSetting.LookScale = 0.5f;
+
+	// Data
+	CurrentDataAsset = UBFLCommon::GetDefaultHeroDataAssetSync();
 }
 
 void AVTHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -166,10 +171,9 @@ void AVTHeroCharacter::PossessedBy(AController* NewController)
 		WeaponChangingDelayReplicationTagChangedDelegateHandle = AbilitySystemComponent->RegisterGameplayTagEvent(WeaponChangingDelayReplicationTag)
 		                                                                               .AddUObject(this, &AVTHeroCharacter::WeaponChangingDelayReplicationTagChanged);
 
-		// Set the AttributeSetBase for convenience attribute functions
 		AttributeSetBase = PS->GetAttributeSetBase();
-
 		AmmoAttributeSet = PS->GetAmmoAttributeSet();
+		AbilityAttributeMap = PS->GetAbilityAttributeSet();
 
 		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that possession from rejoining doesn't reset attributes.
 		// For now assume possession = spawn/respawn.
@@ -753,6 +757,15 @@ void AVTHeroCharacter::SaveSetting()
 {
 }
 
+UVTHeroDataAsset* AVTHeroCharacter::GetCurrentDataAsset() const
+{
+	if (CurrentDataAsset != nullptr)
+	{
+		return CurrentDataAsset.Get();
+	}
+	return nullptr;
+}
+
 bool AVTHeroCharacter::IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc)
 {
 	bool IsValidFuncTag = false;
@@ -791,6 +804,22 @@ bool AVTHeroCharacter::IsInputActionValueFunc(const UFunction* Func, bool& bIsPa
 UEnhancedInputComponent* AVTHeroCharacter::GetEnhancedInput() const
 {
 	return Cast<UEnhancedInputComponent>(InputComponent);
+}
+
+void AVTHeroCharacter::InitializeAttributes()
+{
+	Super::InitializeAttributes();
+	
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	for(const TSubclassOf<UGameplayEffect> GameplayEffect : StartupAbilityAttributesGE)
+	{
+		if (FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
+		}
+	}
 }
 
 /**
@@ -858,54 +887,6 @@ void AVTHeroCharacter::PostInitializeComponents()
 	StartingThirdPersonMeshLocation = GetMesh()->GetRelativeLocation();
 
 	GetWorldTimerManager().SetTimerForNextTick(this, &AVTHeroCharacter::SpawnDefaultInventory);
-}
-
-void AVTHeroCharacter::LookUp(float Value)
-{
-	if (IsAlive())
-	{
-		AddControllerPitchInput(Value);
-	}
-}
-
-void AVTHeroCharacter::LookUpRate(float Value)
-{
-	if (IsAlive())
-	{
-		AddControllerPitchInput(Value * BaseLookUpRate * GetWorld()->DeltaTimeSeconds);
-	}
-}
-
-void AVTHeroCharacter::Turn(float Value)
-{
-	if (IsAlive())
-	{
-		AddControllerYawInput(Value);
-	}
-}
-
-void AVTHeroCharacter::TurnRate(float Value)
-{
-	if (IsAlive())
-	{
-		AddControllerYawInput(Value * BaseTurnRate * GetWorld()->DeltaTimeSeconds);
-	}
-}
-
-void AVTHeroCharacter::MoveForward(float Value)
-{
-	if (IsAlive())
-	{
-		AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw, 0)), Value);
-	}
-}
-
-void AVTHeroCharacter::MoveRight(float Value)
-{
-	if (IsAlive())
-	{
-		AddMovementInput(UKismetMathLibrary::GetRightVector(FRotator(0, GetControlRotation().Yaw, 0)), Value);
-	}
 }
 
 void AVTHeroCharacter::TogglePerspective()
@@ -1020,11 +1001,10 @@ void AVTHeroCharacter::OnRep_PlayerState()
 		BindASCInput();
 
 		AbilitySystemComponent->AbilityFailedCallbacks.AddUObject(this, &AVTHeroCharacter::OnAbilityActivationFailed);
-
-		// Set the AttributeSetBase for convenience attribute functions
+		
 		AttributeSetBase = PS->GetAttributeSetBase();
-
 		AmmoAttributeSet = PS->GetAmmoAttributeSet();
+		AbilityAttributeMap = PS->GetAbilityAttributeSet();
 
 		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that posession from rejoining doesn't reset attributes.
 		// For now assume possession = spawn/respawn.

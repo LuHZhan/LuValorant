@@ -9,6 +9,7 @@
 
 #include "Characters/VTCharacterBase.h"
 #include "../Abilities/VTInteractable.h"
+#include "Data/VTHeroDataAsset.h"
 #include "Setting/VTSettingType.h"
 #include "VTHeroCharacter.generated.h"
 
@@ -78,7 +79,7 @@ class LUGAMEPLAYFRAME_API AVTHeroCharacter : public AVTCharacterBase, public IVT
 public:
 	AVTHeroCharacter(const class FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HeroCharacter")
 	bool bStartInFirstPersonPerspective;
 
 	FGameplayTag CurrentWeaponTag;
@@ -88,6 +89,7 @@ public:
 	// Only called on the Server. Calls before Server's AcknowledgePossession.
 	virtual void PossessedBy(AController* NewController) override;
 
+	/** 角色状态栏 */
 	class UVTFloatingStatusBarWidget* GetFloatingStatusBar();
 
 	// Server handles knockdown - cancel abilities, remove effects, activate knockdown ability
@@ -101,13 +103,14 @@ public:
 
 	virtual void FinishDying() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Valorant|GSHeroCharacter")
+	UFUNCTION(BlueprintCallable, Category = "HeroCharacter")
 	virtual bool IsInFirstPersonPerspective() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Valorant|GSHeroCharacter")
+	/** 获取当前第一视角Mesh */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HeroCharacter")
 	USkeletalMeshComponent* GetFirstPersonMesh() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Valorant|GSHeroCharacter")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "HeroCharacter")
 	USkeletalMeshComponent* GetThirdPersonMesh() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Valorant|Inventory")
@@ -217,8 +220,9 @@ public:
 	*/
 	FSimpleMulticastDelegate* GetTargetCancelInteractionDelegate(UPrimitiveComponent* InteractionComponent) override;
 
-public:
-	// --------- EnhancedInput ---------
+	// --------------------------------
+	//              Input
+	// --------------------------------
 
 	/** 常规IMC */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Valorant|Input")
@@ -263,32 +267,35 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Look(const FInputActionValue& Value);
 
-	// ========= EnhancedInput =========
+	// ================================
+	//              Input
+	// ================================
 
 	// --------- Setting ---------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Valorant|Setting")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	FVTHeroSettingType HeroSetting;
 
-	UFUNCTION(BlueprintCallable, Category = "Valorant|Setting")
+	UFUNCTION(BlueprintCallable, Category = "Setting")
 	void SaveSetting();
 
 	// ========= Setting =========
 
-	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
+	/** 数据 */
+	UPROPERTY(BlueprintReadOnly, Category = "Data")
+	TWeakObjectPtr<UVTHeroDataAsset> CurrentDataAsset;
+
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	UVTHeroDataAsset* GetCurrentDataAsset() const;
+
+	UPROPERTY(BlueprintReadOnly, Category = "HeroCharacter")
 	FVector StartingThirdPersonMeshLocation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadOnly, Category = "HeroCharacter")
 	FVector StartingFirstPersonMeshLocation;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Valorant|Abilities")
 	float ReviveDuration;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Valorant|Camera")
-	float BaseTurnRate;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Valorant|Camera")
-	float BaseLookUpRate;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|Camera")
 	float StartingThirdPersonCameraBoomArmLength;
@@ -299,7 +306,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|Camera")
 	bool bIsFirstPersonPerspective;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadOnly, Category = "HeroCharacter")
 	bool bWasInFirstPersonPerspectiveWhenKnockedDown;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Valorant|Hero")
@@ -318,7 +325,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Valorant|Camera")
 	float Default3PFOV;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "HeroCharacter")
 	FName WeaponAttachPoint;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Valorant|Camera")
@@ -354,14 +361,24 @@ public:
 	UPROPERTY()
 	class UVTAmmoAttributeSet* AmmoAttributeSet;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Valorant|GSHeroCharacter")
+	/** 当前角色技能AS */
+	UPROPERTY()
+	TMap<FGameplayTag, class UVTAbilityAttributeSet*> AbilityAttributeMap;
+	
+	/** 初始化角色技能AS的GE */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HeroCharacter")
+	TArray<TSubclassOf<UGameplayEffect>> StartupAbilityAttributesGE;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "HeroCharacter")
 	TSubclassOf<UGameplayEffect> KnockDownEffect;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "HeroCharacter")
 	TSubclassOf<UGameplayEffect> ReviveEffect;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Valorant|GSHeroCharacter")
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "HeroCharacter")
 	TSubclassOf<UGameplayEffect> DeathEffect;
+
+	virtual void InitializeAttributes() override;
 
 	FSimpleMulticastDelegate InteractionCanceledDelegate;
 
@@ -386,24 +403,6 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void PostInitializeComponents() override;
-
-	// Mouse
-	void LookUp(float Value);
-
-	// Gamepad
-	void LookUpRate(float Value);
-
-	// Mouse
-	void Turn(float Value);
-
-	// Gamepad
-	void TurnRate(float Value);
-
-	// Mouse + Gamepad
-	void MoveForward(float Value);
-
-	// Mouse + Gamepad
-	void MoveRight(float Value);
 
 	// Toggles between perspectives
 	UFUNCTION(BlueprintCallable, Category = "Valorant|VTHeroCharacter")

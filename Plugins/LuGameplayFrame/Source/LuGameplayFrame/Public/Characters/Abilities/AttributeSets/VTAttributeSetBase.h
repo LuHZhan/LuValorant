@@ -93,7 +93,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UVTAttributeSetBase, Armor)
 
 	// Meta AttributeData
-	// 由DamageExecution用来计算最终伤害，然后变成-Health临时值，只存在于服务器上。不是复制。
+	// DamageExecution用来计算最终伤害，然后变成-Health临时值，只存在于服务器上。不是复制。
 	UPROPERTY(BlueprintReadOnly, Category = "Damage")
 	FGameplayAttributeData Damage;
 	ATTRIBUTE_ACCESSORS(UVTAttributeSetBase, Damage)

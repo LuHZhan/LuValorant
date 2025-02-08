@@ -21,8 +21,8 @@ public:
 	static bool GetAttributeValue(UAbilitySystemComponent* ASC, FGameplayAttribute Attribute, float& BaseValue, float& CurValue);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Data")
-	static UVTHeroDataAsset* GetDefaultHeroDataAssetSync();
+	static UVTHeroDataAsset* GetDefaultHeroDataAssetSync(const bool bIsUseDefaultPath = true, FSoftObjectPath DataAssetPath = FSoftObjectPath());
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Data")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Data")	
 	static UVTHeroDataAsset* GetDefaultHeroDataAssetAsyn();
 };

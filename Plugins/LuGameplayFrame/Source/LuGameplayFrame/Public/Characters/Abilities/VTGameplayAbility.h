@@ -47,17 +47,9 @@ class LUGAMEPLAYFRAME_API UVTGameplayAbility : public UGameplayAbility, public I
 public:
 	UVTGameplayAbility();
 
-	// // Abilities with this set will automatically activate when the input is pressed
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-	EVTAbilityInputID AbilityInputID = EVTAbilityInputID::None;
-	//
-	// // Value to associate an ability with an slot without tying it to an automatically activated input.
-	// // Passive abilities won't be tied to an input so we need a way to generically associate abilities with slots.
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
-	EVTAbilityInputID AbilityID = EVTAbilityInputID::None;
+	virtual ~UVTGameplayAbility() override;
 
-	// Tells an ability to activate immediately when its granted
-	// Used for passive abilities and abilites forced on others.
+	/** 是否在GiveGA时激活GA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ability")
 	bool bActivateAbilityOnGranted;
 
@@ -97,18 +89,54 @@ public:
 
 	// ================ Input ================
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameplayEffects")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
 	TMap<FGameplayTag, FVTGameplayEffectContainer> EffectContainerMap;
-	
-	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TMap<FGameplayTag, UGameplayEffect*> EffectContainer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TArray<TSubclassOf<UGameplayEffect>> AbilityGEs;
+
+	/** 被认定为消耗的GE */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TArray<TSubclassOf<UGameplayEffect>> CostGEs;
+
+	/** 被认定为冷却的GE，不会接入GetCooldownGameplayEffect */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> CooldownGEs;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> CooldownFinishedGEs;
+
+	UFUNCTION(BlueprintCallable, Category="GEs")
+	TArray<UGameplayEffect*> GetCostGEs() const;
+
+	UFUNCTION(BlueprintCallable, Category="GEs")
+	TArray<UGameplayEffect*> GetCooldownGEs() const;
+
+	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void OnPostOnAvatarSet(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Ability")
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Ability")
 	void OnPostOnGiveAbility(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec);
-	
+
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
+	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
+	FGameplayTagContainer* CooldownContainerPtr;
+
+	// virtual UGameplayEffect* GetCostGameplayEffect() const override;
+	// virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	void LoadEffectContainer(TMap<FGameplayTag, UGameplayEffect*>& CurEffectContainer,TMap<FGameplayTag, bool>& EffectIsActivated );
+
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	FGameplayAbilityTargetDataHandle MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors);
 
@@ -160,22 +188,6 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr,
 	                                const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
-	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	// Allows C++ and Blueprint abilities to override how cost is checked in case they don't use a GE like weapon ammo
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Ability")
-	bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
-	virtual bool CheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const;
-
-	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
-	// Allows C++ and Blueprint abilities to override how cost is applied in case they don't use a GE like weapon ammo
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Ability")
-	void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const;
-
-	virtual void ApplyCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-	{
-	};
 
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	virtual void SetHUDReticle(TSubclassOf<class UVTHUDReticle> ReticleClass);
@@ -186,11 +198,6 @@ public:
 	// Sends TargetData from the client to the Server and creates a new Prediction Window
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	virtual void SendTargetDataToServer(const FGameplayAbilityTargetDataHandle& TargetData);
-
-	// Is the player's input currently pressed? Only works if the ability is bound to input.
-	UFUNCTION(BlueprintCallable, Category = "Ability")
-	virtual bool IsInputPressed() const;
-
 
 	// ----------------------------------------------------------------------------------------------------------------
 	//	Animation Support for multiple USkeletalMeshComponents on the AvatarActor
@@ -204,13 +211,13 @@ public:
 	virtual void SetCurrentMontageForMesh(USkeletalMeshComponent* InMesh, class UAnimMontage* InCurrentMontage);
 
 	// ---------------- IVTGeneralInterface ----------------
-	
+
 	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
 	virtual AVTHeroCharacter* GetPawn() const override;
-	
+
 	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
 	virtual UVTGameplayAbility* GetAbilityInstanceFromHandle(FGameplayAbilitySpecHandle InHandle) const override;
-	
+
 	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
 	virtual UVTGameplayAbility* GetAbilityInstanceFromClass(TSubclassOf<UGameplayAbility> InAbilityClass) const override;
 
@@ -220,18 +227,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category="IVTGeneralInterface")
 	virtual bool IsPrimaryAbilityInstanceActive(FGameplayAbilitySpecHandle Handle) const override;
 
-	UFUNCTION(BlueprintCallable,BlueprintPure,Category="IVTGeneralInterface")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="IVTGeneralInterface")
 	virtual bool GASpecHandleIsValid(FGameplayAbilitySpecHandle SpecHandle) const override;
 
-	UFUNCTION(BlueprintCallable,BlueprintPure,Category="IVTGeneralInterface")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="IVTGeneralInterface")
 	virtual bool IsAbilityActive() const override;
 
 	// ================ IVTGeneralInterface ================
-	
+
 protected:
 	FGameplayTag InteractingTag;
 	FGameplayTag InteractingRemovalTag;
 
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// FGameplayTag OwningAbilityTag;
 
 	// ----------------------------------------------------------------------------------------------------------------
 	//	Animation Support for multiple USkeletalMeshComponents on the AvatarActor

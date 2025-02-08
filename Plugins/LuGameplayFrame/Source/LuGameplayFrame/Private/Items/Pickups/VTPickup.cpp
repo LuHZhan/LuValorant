@@ -98,7 +98,7 @@ void AVTPickup::GivePickupTo(AVTCharacterBase* Pawn)
 			continue;
 		}
 		
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1, static_cast<int32>(AbilityClass.GetDefaultObject()->AbilityInputID), this);
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1, INDEX_NONE, this);
 		ASC->GiveAbilityAndActivateOnce(AbilitySpec);
 	}
 

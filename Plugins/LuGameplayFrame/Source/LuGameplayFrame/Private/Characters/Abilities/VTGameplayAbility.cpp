@@ -31,12 +31,21 @@ UVTGameplayAbility::UVTGameplayAbility()
 
 	InteractingTag = FGameplayTag::RequestGameplayTag("State.Interacting");
 	InteractingRemovalTag = FGameplayTag::RequestGameplayTag("State.InteractingRemoval");
+
+	CooldownContainerPtr = new FGameplayTagContainer{};
+	// AddToRoot()
+}
+
+UVTGameplayAbility::~UVTGameplayAbility()
+{
+	if(CooldownContainerPtr!=nullptr)
+	{
+		delete CooldownContainerPtr;
+	}
 }
 
 void UVTGameplayAbility::IATriggerEvent_Implementation(const FInputActionValue& Value)
 {
-	// ActivateAbility();
-	// K2_ActivateAbility();
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo(); ASC != nullptr)
 	{
 		ASC->TryActivateAbilityByClass(GetClass(), true);
@@ -49,7 +58,45 @@ void UVTGameplayAbility::IACompletedEvent_Implementation(const FInputActionValue
 
 void UVTGameplayAbility::IACanceledEvent_Implementation(const FInputActionValue& Value)
 {
-	
+}
+
+TArray<UGameplayEffect*> UVTGameplayAbility::GetCostGEs() const
+{
+	TArray<UGameplayEffect*> Result = {};
+	if (!CostGEs.IsEmpty())
+	{
+		for (TSubclassOf<UGameplayEffect> GEClass : CostGEs)
+		{
+			Result.Add(GEClass.GetDefaultObject());
+		}
+	}
+	return Result;
+}
+
+TArray<UGameplayEffect*> UVTGameplayAbility::GetCooldownGEs() const
+{
+	TArray<UGameplayEffect*> Result = {};
+	if (!CooldownGEs.IsEmpty())
+	{
+		for (auto Cooldown : CooldownGEs)
+		{
+			Result.Add(Cooldown.Value.GetDefaultObject());
+		}
+	}
+	return Result;
+}
+
+const FGameplayTagContainer* UVTGameplayAbility::GetCooldownTags() const
+{
+	TArray<UGameplayEffect*> CDGEs = GetCooldownGEs();
+	FGameplayTagContainer CombinedGrantedTags;
+	for (UGameplayEffect* CDGE : CDGEs)
+	{
+		CombinedGrantedTags.AppendTags(CDGE->GetGrantedTags());
+	}
+	// 脱离const的方式？
+	CooldownContainerPtr->AppendTags(CombinedGrantedTags);
+	return CooldownContainerPtr->Num() > 0 ? CooldownContainerPtr : nullptr;
 }
 
 void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -59,6 +106,25 @@ void UVTGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo,
 	if (bActivateAbilityOnGranted)
 	{
 		ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle, false);
+	}
+
+	if (const AVTHeroCharacter* Pawn = GetPawn(); IsValid(Pawn))
+	{
+		if (const UVTHeroDataAsset* Asset = Pawn->GetCurrentDataAsset(); IsValid(Asset))
+		{
+			for (const FGameplayTag Tag : AbilityTags)
+			{
+				TArray<FAbilityPerformanceInfo> Info = Asset->GetPerformanceInfoArray(Tag);
+				if (Info.Num() > 0)
+				{
+					EffectContainerMap.Empty();
+					AbilityGEs = Info[0].Effects;
+					CostGEs = Info[0].CostEffect;
+					CooldownGEs = Info[0].CooldownEffect;
+					CooldownFinishedGEs = Info[0].CooldownFinishedGEs;
+				}
+			}
+		}
 	}
 
 	OnPostOnAvatarSet(*ActorInfo, Spec);
@@ -95,14 +161,45 @@ void UVTGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInf
 	OnPostOnGiveAbility(*ActorInfo, Spec);
 }
 
-void UVTGameplayAbility::OnPostOnGiveAbility_Implementation(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec)
+bool UVTGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	for (TArray<UGameplayEffect*> CurCostGEs = GetCostGEs(); const UGameplayEffect* CostGE : CurCostGEs)
+	{
+		UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+		check(AbilitySystemComponent!=nullptr)
+		if (!AbilitySystemComponent->CanApplyAttributeModifiers(CostGE, GetAbilityLevel(Handle, ActorInfo), MakeEffectContext(Handle, ActorInfo)))
+		{
+			if (const FGameplayTag& CostTag = UAbilitySystemGlobals::Get().ActivateFailCostTag; OptionalRelevantTags && CostTag.IsValid())
+			{
+				OptionalRelevantTags->AddTag(CostTag);
+			}
+			return false;
+		}
+	}
+	return true;
 }
 
-void UVTGameplayAbility::OnPostOnAvatarSet_Implementation(FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilitySpec& Spec)
+void UVTGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	for (TArray<UGameplayEffect*> CurCostGEs = GetCostGEs(); const UGameplayEffect* CostGE : CurCostGEs)
+	{
+		ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, CostGE, GetAbilityLevel(Handle, ActorInfo));
+	}
 }
 
+void UVTGameplayAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	for (TArray<UGameplayEffect*> CurCooldownGEs = GetCostGEs(); const UGameplayEffect* CooldownGE : CurCooldownGEs)
+	{
+		ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, CooldownGE, GetAbilityLevel(Handle, ActorInfo));
+	}
+}
+
+
+void UVTGameplayAbility::LoadEffectContainer(TMap<FGameplayTag, UGameplayEffect*>& CurEffectContainer, TMap<FGameplayTag, bool>& EffectIsActivated)
+{
+	
+}
 
 FGameplayAbilityTargetDataHandle UVTGameplayAbility::MakeGameplayAbilityTargetDataHandleFromActorArray(const TArray<AActor*> TargetActors)
 {
@@ -133,14 +230,12 @@ FVTGameplayEffectContainerSpec UVTGameplayAbility::MakeEffectContainerSpecFromCo
 {
 	// First figure out our actor info
 	FVTGameplayEffectContainerSpec ReturnSpec;
-	AActor* OwningActor = GetOwningActorFromActorInfo();
+	const AActor* OwningActor = GetOwningActorFromActorInfo();
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
 	AVTCharacterBase* AvatarCharacter = Cast<AVTCharacterBase>(AvatarActor);
-	UVTAbilitySystemComponent* OwningASC = UVTAbilitySystemComponent::GetAbilitySystemComponentFromActor(OwningActor);
 
-	if (OwningASC)
+	if (UVTAbilitySystemComponent::GetAbilitySystemComponentFromActor(OwningActor) != nullptr)
 	{
-		// If we have a target type, run the targeting logic. This is optional, targets can be added later
 		if (Container.TargetType.Get())
 		{
 			TArray<FHitResult> HitResults;
@@ -240,22 +335,6 @@ bool UVTGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
-bool UVTGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
-{
-	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) && CheckCost(Handle, *ActorInfo);
-}
-
-bool UVTGameplayAbility::CheckCost_Implementation(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo& ActorInfo) const
-{
-	return true;
-}
-
-void UVTGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	ApplyCost(Handle, *ActorInfo, ActivationInfo);
-	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-}
-
 void UVTGameplayAbility::SetHUDReticle(TSubclassOf<UVTHUDReticle> ReticleClass)
 {
 	AVTPlayerController* PC = Cast<AVTPlayerController>(CurrentActorInfo->PlayerController);
@@ -295,12 +374,6 @@ void UVTGameplayAbility::SendTargetDataToServer(const FGameplayAbilityTargetData
 		CurrentActorInfo->AbilitySystemComponent->CallServerSetReplicatedTargetData(CurrentSpecHandle,
 		                                                                            CurrentActivationInfo.GetActivationPredictionKey(), TargetData, ApplicationTag, ASC->ScopedPredictionKey);
 	}
-}
-
-bool UVTGameplayAbility::IsInputPressed() const
-{
-	FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec();
-	return Spec && Spec->InputPressed;
 }
 
 UAnimMontage* UVTGameplayAbility::GetCurrentMontageForMesh(USkeletalMeshComponent* InMesh)

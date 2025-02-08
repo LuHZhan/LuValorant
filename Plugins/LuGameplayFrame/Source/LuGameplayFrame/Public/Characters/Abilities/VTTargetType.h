@@ -23,8 +23,7 @@ class LUGAMEPLAYFRAME_API UVTTargetType : public UObject
 
 public:
 	UVTTargetType() {}
-
-	// 确定GE的对象
+	
 	UFUNCTION(BlueprintNativeEvent)
 	void GetTargets(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;
 	virtual void GetTargets_Implementation(AVTCharacterBase* TargetingCharacter, AActor* TargetingActor, FGameplayEventData EventData, TArray<FGameplayAbilityTargetDataHandle>& OutTargetData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const;

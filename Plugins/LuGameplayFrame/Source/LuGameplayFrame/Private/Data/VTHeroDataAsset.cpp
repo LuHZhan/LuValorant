@@ -4,7 +4,7 @@
 #include "Data/VTHeroDataAsset.h"
 
 
-FAbilityInfo FHeroAbilityData::GetFAbilityInfo(const FGameplayTag TargetAbilityTag)
+FAbilityInfo FHeroAbilityData::GetFAbilityInfo(const FGameplayTag TargetAbilityTag) const
 {
 	if (HeroAbilities.HasTag(TargetAbilityTag))
 	{
@@ -13,7 +13,7 @@ FAbilityInfo FHeroAbilityData::GetFAbilityInfo(const FGameplayTag TargetAbilityT
 	return FAbilityInfo{};
 }
 
-FAbilityBaseInfo FHeroAbilityData::GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag)
+FAbilityBaseInfo FHeroAbilityData::GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag) const
 {
 	if (TargetHeroTag == HeroTag && HeroAbilities.HasTag(TargetAbilityTag))
 	{
@@ -22,7 +22,7 @@ FAbilityBaseInfo FHeroAbilityData::GetFAbilityBaseInfo(const FGameplayTag Target
 	return FAbilityBaseInfo{};
 }
 
-FAbilityPerformanceInfo FHeroAbilityData::GetFAbilityPerformanceInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag)
+FAbilityPerformanceInfo FHeroAbilityData::GetFAbilityPerformanceInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag) const
 {
 	if (TargetHeroTag == HeroTag && HeroAbilities.HasTag(TargetAbilityTag))
 	{
@@ -60,7 +60,7 @@ FAbilityBaseInfo UVTHeroDataAsset::GetBaseInfo(FGameplayTag HeroTag, FGameplayTa
 	return FAbilityBaseInfo{};
 }
 
-FAbilityPerformanceInfo UVTHeroDataAsset::GetPerformanceInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag)
+FAbilityPerformanceInfo UVTHeroDataAsset::GetPerformanceInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag) const
 {
 	if (HeroAbilityData.Num() > 0)
 	{
@@ -72,6 +72,19 @@ FAbilityPerformanceInfo UVTHeroDataAsset::GetPerformanceInfo(FGameplayTag HeroTa
 	return FAbilityPerformanceInfo{};
 }
 
+TArray<FAbilityPerformanceInfo> UVTHeroDataAsset::GetPerformanceInfoArray(const FGameplayTag AbilityTag) const
+{
+	TArray<FAbilityPerformanceInfo> Result = {};
+	for (const auto Data : HeroAbilityData)
+	{
+		for (const auto Ability : Data.HeroAbilities)
+		{
+			Result.Add(Data.GetFAbilityInfo(Ability).PerformanceInfo);
+		}
+	}
+	return Result;
+}
+
 void UVTHeroDataAsset::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -81,6 +94,7 @@ void UVTHeroDataAsset::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		for (TTuple<FGameplayTag, FAbilityInfo>& Info : Ability.AbilityInfoMap)
 		{
 			Info.Value.PerformanceInfo.IsAdvancedSettingsEnabled();
+			Info.Value.BaseInfo.IsAdvancedSettingsEnabled();
 		}
 
 		for (FGameplayTag Tag : Ability.HeroAbilities)

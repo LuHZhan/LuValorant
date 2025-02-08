@@ -3,12 +3,11 @@
 
 #include "Player/VTPlayerState.h"
 #include "Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
-#include "..\..\Public\Characters\Abilities\AttributeSets\VTAttributeSetBase.h"
+#include "Characters/Abilities/AttributeSets/VTAttributeSetBase.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
-#include "Characters/Abilities/VTAbilitySystemGlobals.h"
 #include "Characters/Heroes/VTHeroCharacter.h"
+#include "Characters/Heroes/Abilities/VTAbilityAttributeSet.h"
 #include "Player/VTPlayerController.h"
-#include "UI/VTFloatingStatusBarWidget.h"
 #include "UI/VTHUDWidget.h"
 #include "Weapons/VTWeapon.h"
 
@@ -26,8 +25,17 @@ AVTPlayerState::AVTPlayerState()
 	// Adding it as a subobject of the owning actor of an AbilitySystemComponent
 	// automatically registers the AttributeSet with the AbilitySystemComponent
 	AttributeSetBase = CreateDefaultSubobject<UVTAttributeSetBase>(TEXT("AttributeSetBase"));
-
 	AmmoAttributeSet = CreateDefaultSubobject<UVTAmmoAttributeSet>(TEXT("AmmoAttributeSet"));
+	
+	LoadHeroAbilityAttributeKeyMap();
+	TArray<FGameplayTag> ASTags;
+	AbilityAttributeMap.GetKeys(ASTags);
+	for (FGameplayTag Tag : ASTags)
+	{
+		FString Suffix{Tag.ToString()};
+		Suffix.Append(TEXT("_AbilityAttributeSet"));
+		AbilityAttributeMap[Tag] = CreateDefaultSubobject<UVTAbilityAttributeSet>(*Tag.ToString());
+	}
 
 	// Set PlayerState's NetUpdateFrequency to the same as the Character.
 	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
@@ -36,6 +44,8 @@ AVTPlayerState::AVTPlayerState()
 
 	DeadTag = FGameplayTag::RequestGameplayTag("State.Dead");
 	KnockedDownTag = FGameplayTag::RequestGameplayTag("State.KnockedDown");
+
+	HeroTag = FGameplayTag::RequestGameplayTag("Hero.Jett");
 }
 
 UAbilitySystemComponent* AVTPlayerState::GetAbilitySystemComponent() const
@@ -51,6 +61,44 @@ UVTAttributeSetBase* AVTPlayerState::GetAttributeSetBase() const
 UVTAmmoAttributeSet* AVTPlayerState::GetAmmoAttributeSet() const
 {
 	return AmmoAttributeSet;
+}
+
+TMap<FGameplayTag, UVTAbilityAttributeSet*> AVTPlayerState::GetAbilityAttributeSet() const
+{
+	return AbilityAttributeMap;
+}
+
+FHeroAbilityData AVTPlayerState::GetHeroAbilityData() const
+{
+	UVTHeroDataAsset* Asset = UBFLCommon::GetDefaultHeroDataAssetSync();
+	if (Asset != nullptr)
+	{
+		for (FHeroAbilityData Data : Asset->HeroAbilityData)
+		{
+			if (Data.HeroTag == HeroTag)
+			{
+				return Data;
+			}
+		}
+	}
+	return FHeroAbilityData{};
+}
+
+bool AVTPlayerState::LoadHeroAbilityAttributeKeyMap()
+{
+	for (FHeroAbilityData HeroAbilityData = GetHeroAbilityData(); FGameplayTag AbilityTag : HeroAbilityData.HeroAbilities)
+	{
+		if (HeroAbilityData.AbilityInfoMap.Contains(AbilityTag))
+		{
+			AbilityAttributeMap.Add(AbilityTag, nullptr);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("LoadHeroAbilityAttributeMap: AbilityInfoMap does not contain AbilityTag: %s"), *AbilityTag.ToString());
+			return false;
+		}
+	}
+	return true;
 }
 
 bool AVTPlayerState::IsAlive() const
@@ -123,6 +171,11 @@ void AVTPlayerState::StopInteractionTimer()
 	}
 }
 
+TMap<FGameplayAttributeData, float> AVTPlayerState::GetAttribute(const TArray<FGameplayAttributeData>& TargetAttributeData) const
+{
+	return {};
+}
+
 float AVTPlayerState::GetHealth() const
 {
 	return AttributeSetBase->GetHealth();
@@ -131,11 +184,6 @@ float AVTPlayerState::GetHealth() const
 float AVTPlayerState::GetMaxHealth() const
 {
 	return AttributeSetBase->GetMaxHealth();
-}
-
-float AVTPlayerState::GetHealthRegenRate() const
-{
-	return AttributeSetBase->GetHealthRegenRate();
 }
 
 float AVTPlayerState::GetMana() const
@@ -148,11 +196,6 @@ float AVTPlayerState::GetMaxMana() const
 	return AttributeSetBase->GetMaxMana();
 }
 
-float AVTPlayerState::GetManaRegenRate() const
-{
-	return AttributeSetBase->GetManaRegenRate();
-}
-
 float AVTPlayerState::GetStamina() const
 {
 	return AttributeSetBase->GetStamina();
@@ -163,11 +206,6 @@ float AVTPlayerState::GetMaxStamina() const
 	return AttributeSetBase->GetMaxStamina();
 }
 
-float AVTPlayerState::GetStaminaRegenRate() const
-{
-	return AttributeSetBase->GetStaminaRegenRate();
-}
-
 float AVTPlayerState::GetShield() const
 {
 	return AttributeSetBase->GetShield();
@@ -176,11 +214,6 @@ float AVTPlayerState::GetShield() const
 float AVTPlayerState::GetMaxShield() const
 {
 	return AttributeSetBase->GetMaxShield();
-}
-
-float AVTPlayerState::GetShieldRegenRate() const
-{
-	return AttributeSetBase->GetShieldRegenRate();
 }
 
 float AVTPlayerState::GetArmor() const
@@ -218,32 +251,6 @@ int32 AVTPlayerState::GetGoldBounty() const
 	return AttributeSetBase->GetGoldBounty();
 }
 
-int32 AVTPlayerState::GetPrimaryClipAmmo() const
-{
-	AVTHeroCharacter* Hero = GetPawn<AVTHeroCharacter>();
-	if (Hero)
-	{
-		return Hero->GetPrimaryClipAmmo();
-	}
-
-	return 0;
-}
-
-int32 AVTPlayerState::GetPrimaryReserveAmmo() const
-{
-	AVTHeroCharacter* Hero = GetPawn<AVTHeroCharacter>();
-	if (Hero && Hero->GetCurrentWeapon() && AmmoAttributeSet)
-	{
-		FGameplayAttribute Attribute = AmmoAttributeSet->GetReserveAmmoAttributeFromTag(Hero->GetCurrentWeapon()->PrimaryAmmoType);
-		if (Attribute.IsValid())
-		{
-			return AbilitySystemComponent->GetNumericAttribute(Attribute);
-		}
-	}
-
-	return 0;
-}
-
 void AVTPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
@@ -252,7 +259,6 @@ void AVTPlayerState::BeginPlay()
 	{
 		// Attribute change callbacks
 		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetHealthAttribute()).AddUObject(this, &AVTPlayerState::HealthChanged);
-
 		// Tag change callbacks
 		AbilitySystemComponent->RegisterGameplayTagEvent(KnockedDownTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AVTPlayerState::KnockDownTagChanged);
 	}

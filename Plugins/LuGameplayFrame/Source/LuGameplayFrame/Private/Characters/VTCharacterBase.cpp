@@ -253,7 +253,7 @@ void AVTCharacterBase::AddCharacterAbilities()
 	for (TSubclassOf<UVTGameplayAbility>& StartupAbility : CharacterAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(
-			FGameplayAbilitySpec(StartupAbility, GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityID), static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityInputID), this));
+			FGameplayAbilitySpec(StartupAbility, 1, INDEX_NONE, this));
 	}
 
 	AbilitySystemComponent->bCharacterAbilitiesGiven = true;

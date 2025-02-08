@@ -28,7 +28,7 @@ struct FAbilityBaseInfo
 {
 	GENERATED_BODY()
 
-	FAbilityBaseInfo(): AbilityStartCount(0), bIsCooldownActive(false), CooldownDuration(0), AbilityType(EAbilityType::None), IconTexture(nullptr)
+	FAbilityBaseInfo(): AbilityStartCount(0), bIsCooldownActive(false), CooldownDuration(0.0f), Damage(0.0f), AbilityType(EAbilityType::None), IconTexture(nullptr)
 	{
 		AbilityStateTags = {
 			{EAbilityState::Cooldown, FGameplayTag{}},
@@ -46,6 +46,12 @@ struct FAbilityBaseInfo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bIsCooldownActive"))
 	float CooldownDuration;
 
+	UPROPERTY()
+	bool bCanEditDamageTag = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bCanEditDamageTag"))
+	float Damage;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EAbilityType AbilityType;
 
@@ -54,6 +60,11 @@ struct FAbilityBaseInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<TEnumAsByte<EAbilityState>, FGameplayTag> AbilityStateTags;
+
+	void IsAdvancedSettingsEnabled()
+	{
+		bCanEditDamageTag = AbilityType == EAbilityType::Damage;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -61,12 +72,17 @@ struct FAbilityPerformanceInfo
 {
 	GENERATED_BODY()
 
+	FAbilityPerformanceInfo(): EditConditionTag(false), AbilityTag(FGameplayTag{}),
+	                           Ability(nullptr), Effects({}), CostEffect({}), CooldownEffect({}), CooldownFinishedGEs({}), CueGameplayTagsTags({})
+	{
+	}
+
 	UPROPERTY()
 	bool EditConditionTag = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag AbilityTag;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	TSubclassOf<UVTGameplayAbility> Ability;
 
@@ -74,10 +90,13 @@ struct FAbilityPerformanceInfo
 	TArray<TSubclassOf<UGameplayEffect>> Effects;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
-	TSubclassOf<UGameplayEffect> CostEffect;
-	
+	TArray<TSubclassOf<UGameplayEffect>> CostEffect;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
-	TSubclassOf<UGameplayEffect> CooldownEffect;
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> CooldownEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GEs")
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> CooldownFinishedGEs;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	FGameplayTagContainer CueGameplayTagsTags;
@@ -93,6 +112,10 @@ struct FAbilityInfo
 {
 	GENERATED_BODY()
 
+	FAbilityInfo(): PerformanceInfo(FAbilityPerformanceInfo{}), BaseInfo(FAbilityBaseInfo{})
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FAbilityPerformanceInfo PerformanceInfo;
 
@@ -105,6 +128,10 @@ struct FHeroAbilityData
 {
 	GENERATED_BODY()
 
+	FHeroAbilityData(): HeroTag(FGameplayTag{}), HeroAbilities(FGameplayTagContainer{}), AbilityInfoMap(TMap<FGameplayTag, FAbilityInfo>{})
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag HeroTag;
 
@@ -114,9 +141,9 @@ struct FHeroAbilityData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<FGameplayTag, FAbilityInfo> AbilityInfoMap;
 
-	FAbilityInfo GetFAbilityInfo(const FGameplayTag TargetAbilityTag);
-	FAbilityBaseInfo GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag);
-	FAbilityPerformanceInfo GetFAbilityPerformanceInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag);
+	FAbilityInfo GetFAbilityInfo(const FGameplayTag TargetAbilityTag) const;
+	FAbilityBaseInfo GetFAbilityBaseInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag) const;
+	FAbilityPerformanceInfo GetFAbilityPerformanceInfo(const FGameplayTag TargetHeroTag, const FGameplayTag TargetAbilityTag) const;
 	bool IsValid() const;
 };
 
@@ -139,7 +166,10 @@ public:
 	FAbilityBaseInfo GetBaseInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Function")
-	FAbilityPerformanceInfo GetPerformanceInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag);
+	FAbilityPerformanceInfo GetPerformanceInfo(FGameplayTag HeroTag, FGameplayTag AbilityTag) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Function")
+	TArray<FAbilityPerformanceInfo> GetPerformanceInfoArray(const FGameplayTag AbilityTag) const;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

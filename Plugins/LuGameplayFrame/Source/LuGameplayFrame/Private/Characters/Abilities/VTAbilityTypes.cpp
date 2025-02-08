@@ -1,8 +1,7 @@
 // Copyright 2024 Dan Kestranek.
 
 
-#include "..\..\..\Public\Characters\Abilities\VTAbilityTypes.h"
-#include "AbilitySystemGlobals.h"
+#include "Characters/Abilities/VTAbilityTypes.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
 
 bool FVTGameplayEffectContainerSpec::HasValidEffects() const

@@ -19,19 +19,32 @@ bool UBFLCommon::GetAttributeValue(UAbilitySystemComponent* ASC, FGameplayAttrib
 	return Tag;
 }
 
-UVTHeroDataAsset* UBFLCommon::GetDefaultHeroDataAssetSync()
+UVTHeroDataAsset* UBFLCommon::GetDefaultHeroDataAssetSync(const bool bIsUseDefaultPath, FSoftObjectPath DataAssetPath)
 {
-	const FSoftObjectPath Path(TEXT("/LuGameplayFrame/Data/DA_HeroData.DA_HeroData"));
-	static UVTHeroDataAsset* Asset = nullptr;
-	if (Asset == nullptr)
+	static FSoftObjectPath Path = DataAssetPath;
+	if (bIsUseDefaultPath)
 	{
-		Asset = Cast<UVTHeroDataAsset>(StaticLoadObject(UDataAsset::StaticClass(), nullptr, *Path.ToString()));
+		Path = FSoftObjectPath{TEXT("/LuGameplayFrame/Data/DA_HeroData.DA_HeroData")};
+		static UVTHeroDataAsset* Asset = nullptr;
+		if (Asset == nullptr)
+		{
+			Asset = Cast<UVTHeroDataAsset>(StaticLoadObject(UDataAsset::StaticClass(), nullptr, *Path.ToString()));
+			if (!Asset)
+			{
+				UE_LOG(LogTemp, Error, TEXT("%s() Failed to find Object. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
+			}
+		}
+		return Asset;
+	}
+	else
+	{
+		UVTHeroDataAsset* Asset = Cast<UVTHeroDataAsset>(StaticLoadObject(UDataAsset::StaticClass(), nullptr, *Path.ToString()));
 		if (!Asset)
 		{
 			UE_LOG(LogTemp, Error, TEXT("%s() Failed to find Object. If it was moved, please update the reference location in C++."), *FString(__FUNCTION__));
 		}
+		return Asset;
 	}
-	return Asset;
 }
 
 UVTHeroDataAsset* UBFLCommon::GetDefaultHeroDataAssetAsyn()

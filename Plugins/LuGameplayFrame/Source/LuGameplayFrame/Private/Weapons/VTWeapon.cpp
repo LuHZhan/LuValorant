@@ -221,7 +221,7 @@ void AVTWeapon::Equip_Implementation()
 		if (Ability.Value != nullptr)
 		{
 			FGameplayAbilitySpec AbilitySpecHandle = FGameplayAbilitySpec{
-				Ability.Value, GetAbilityLevel(Ability.Value.GetDefaultObject()->AbilityID), -1, this
+				Ability.Value, 1, -1, this
 			};
 
 			if (IsValid(AbilitySpecHandle.Ability))
@@ -280,7 +280,7 @@ void AVTWeapon::AddAbilities()
 	for (TSubclassOf<UVTGameplayAbility>& Ability : Abilities)
 	{
 		AbilitySpecHandles.Add(ASC->GiveAbility(
-			FGameplayAbilitySpec(Ability, GetAbilityLevel(Ability.GetDefaultObject()->AbilityID), static_cast<int32>(Ability.GetDefaultObject()->AbilityInputID), this)));
+			FGameplayAbilitySpec(Ability, 1, INDEX_NONE, this)));
 	}
 }
 
