@@ -17,7 +17,7 @@
  * 01.31 完成血条，持续接入武器AS数据生成特定的反馈，完成冲刺 √
  * 02.01 完成GA和IA的Activate，载入枪械开火抖动反馈和动画 √ 
  * 02.02 完成枪械开火的常规抖动，接入技能CD面板 X
- * 02.03 完成技能CD面板
+ * 02.03 完成技能CD面板 X
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVTCharacterDiedDelegate, AVTCharacterBase*, Character);
 
@@ -136,25 +136,19 @@ protected:
 	FTimerHandle DamageNumberTimer;
 
 
-	/** 初始AS */
+	/** 基础AS */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "VT|Abilities")
 	class UVTAttributeSetBase* AttributeSetBase;
 
-	/**
-	 *  初始化的GA List
-	 */
+	/** 初始化GAs*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
 	TArray<TSubclassOf<class UVTGameplayAbility>> CharacterAbilities;
-
-	/**
-	 *  初始化AS的GE List
-	 */
+	
+	/** 初始化AS的GEs */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> StartupInitAttributesGEs;
-
-	/**
-	 *  初始化的GE List
-	 */
+	
+	/** 初始化GEs*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "VT|Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> StartupEffects;
 

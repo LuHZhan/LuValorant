@@ -3,14 +3,17 @@
 
 #include "UI/HeroState.h"
 
+#include "Characters/VTCharacterBase.h"
+#include "Characters/Heroes/VTHeroCharacter.h"
 #include "Components/PanelWidget.h"
 
 
 void UHeroState::InitWidget()
 {
-	if (bIsUseDefaultDataAsset && HeroDataAsset == nullptr)
+	if (HeroDataAsset == nullptr && GetOwningPlayerPawn() != nullptr)
 	{
-		HeroDataAsset = UBFLCommon::GetDefaultHeroDataAssetSync();
+		const AVTHeroCharacter* VTCharacter = Cast<AVTHeroCharacter>(GetOwningPlayerPawn());
+		HeroDataAsset = VTCharacter->GetCurrentDataAsset();
 	}
 	UpdateAbilitys();
 }
@@ -40,11 +43,11 @@ void UHeroState::UpdateAbilitys()
 				UE_LOG(LogTemp, Error, TEXT("%s() Create UAbilitiesWidget failed"), *FString(__FUNCTION__));
 				continue;
 			}
-			
+
 			Ptr->SetAbilityComponent(GetAbilityComponent());
 			// Ptr->LoadAbilitiesStateTag(Ability.Value);
 			Ptr->ReInitWidget();
-			
+
 			CurAbilityWidgets.Add(Ability.Key, Ptr);
 		}
 		LoadAbilitiesWidgetToPanel();

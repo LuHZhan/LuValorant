@@ -8,6 +8,7 @@
 #include "GameplayEffectTypes.h"
 #include "VTPlayerState.generated.h"
 
+class UGameplayEffect;
 struct FHeroAbilityData;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FVTOnGameplayAttributeValueChangedDelegate, FGameplayAttribute, Attribute, float, NewValue, float, OldValue);
 
@@ -35,10 +36,20 @@ public:
 	TMap<FGameplayTag, class UVTAbilityAttributeSet*> GetAbilityAttributeSet() const;
 
 	UFUNCTION(BlueprintCallable,BlueprintPure)
+	FGameplayTag K2_GetCurrentHeroTag() const;
+	const FGameplayTag* GetCurrentHeroTag() const;
+	
+	UFUNCTION(BlueprintCallable,BlueprintPure)
 	FHeroAbilityData GetHeroAbilityData() const;
 
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	const TMap<FGameplayTag, TSubclassOf<UGameplayEffect>>& GetAbilityStartupInitAttributesGE() const;
+	
 	UFUNCTION(BlueprintCallable)
-	bool LoadHeroAbilityAttributeKeyMap();
+	bool LoadHeroAbilityAttributeEmptyKey();
+
+	UFUNCTION(BlueprintCallable)
+	bool LoadHeroAbilityStartupAttributesGEs();
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	bool IsAlive() const;
@@ -59,7 +70,7 @@ public:
 	void StopInteractionTimer();
 
 	// UFUNCTION(BlueprintCallable,BlueprintPure, Category = "PlayerState|Attributes")
-	TMap<FGameplayAttributeData, float> GetAttribute(const TArray<FGameplayAttributeData>& TargetAttributeData) const;
+	// TMap<FGameplayAttributeData, float> GetAttribute(const TArray<FGameplayAttributeData>& TargetAttributeData) const;
 
 	// ----------------------------------------------------------------------------------------------------------------
 	//	Attributes Get and Set
@@ -133,7 +144,11 @@ protected:
 	UPROPERTY()
 	TMap<FGameplayTag, class UVTAbilityAttributeSet*> AbilityAttributeMap;
 
+	UPROPERTY()
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> StartupInitAbilityAttributesGE;
+	
 	FDelegateHandle HealthChangedDelegateHandle;
+	
 
 	virtual void BeginPlay() override;
 

@@ -13,6 +13,7 @@
 #include "Setting/VTSettingType.h"
 #include "VTHeroCharacter.generated.h"
 
+class AVTPlayerState;
 class AVTWeapon;
 class UGameplayEffect;
 
@@ -285,6 +286,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
 	TWeakObjectPtr<UVTHeroDataAsset> CurrentDataAsset;
 
+	/** 获取绑定当前Pawn的DataAsset */
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	UVTHeroDataAsset* GetCurrentDataAsset() const;
 
@@ -362,12 +364,18 @@ public:
 	class UVTAmmoAttributeSet* AmmoAttributeSet;
 
 	/** 当前角色技能AS */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TMap<FGameplayTag, class UVTAbilityAttributeSet*> AbilityAttributeMap;
-	
+
 	/** 初始化角色技能AS的GE */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HeroCharacter")
-	TArray<TSubclassOf<UGameplayEffect>> StartupAbilityAttributesGE;
+	TMap<FGameplayTag, TSubclassOf<UGameplayEffect>> StartupInitAbilityAttributesGE;
+
+	/** 当前角色Tag */
+	const FGameplayTag* HeroTag;
+
+	/** 从PlayerState中加载技能相关信息 */
+	void LoadCurrentHeroAbilityInfo(const AVTPlayerState* CurPlayerState);
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "HeroCharacter")
 	TSubclassOf<UGameplayEffect> KnockDownEffect;

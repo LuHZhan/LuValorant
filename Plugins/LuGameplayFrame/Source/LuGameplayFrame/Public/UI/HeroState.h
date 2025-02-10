@@ -50,10 +50,7 @@ public:
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
-	bool bIsUseDefaultDataAsset = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
-	UVTHeroDataAsset* HeroDataAsset;
+	TWeakObjectPtr<UVTHeroDataAsset> HeroDataAsset;
 
 	// --------------------------------
 	// Cur Data

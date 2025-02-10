@@ -51,7 +51,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UVTAbilityAttributeSet, AbilityMaxDamage)
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
-	TEnumAsByte<EAbilityType> AbilityType;
+	EAbilityType AbilityType;
 	
 	void SetAbilityType(EAbilityType NewType);
 	

@@ -173,7 +173,7 @@ void AVTHeroCharacter::PossessedBy(AController* NewController)
 
 		AttributeSetBase = PS->GetAttributeSetBase();
 		AmmoAttributeSet = PS->GetAmmoAttributeSet();
-		AbilityAttributeMap = PS->GetAbilityAttributeSet();
+		LoadCurrentHeroAbilityInfo(PS);
 
 		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that possession from rejoining doesn't reset attributes.
 		// For now assume possession = spawn/respawn.
@@ -806,16 +806,23 @@ UEnhancedInputComponent* AVTHeroCharacter::GetEnhancedInput() const
 	return Cast<UEnhancedInputComponent>(InputComponent);
 }
 
+void AVTHeroCharacter::LoadCurrentHeroAbilityInfo(const AVTPlayerState* CurPlayerState)
+{
+	HeroTag = CurPlayerState->GetCurrentHeroTag();
+	AbilityAttributeMap = CurPlayerState->GetAbilityAttributeSet();
+	StartupInitAbilityAttributesGE = CurPlayerState->GetAbilityStartupInitAttributesGE();
+}
+
 void AVTHeroCharacter::InitializeAttributes()
 {
 	Super::InitializeAttributes();
-	
+
 	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	for(const TSubclassOf<UGameplayEffect> GameplayEffect : StartupAbilityAttributesGE)
+	for (const TTuple<FGameplayTag, const TSubclassOf<UGameplayEffect>> GameplayEffect : StartupInitAbilityAttributesGE)
 	{
-		if (FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
+		if (FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect.Value, GetCharacterLevel(), EffectContext); NewHandle.IsValid())
 		{
 			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*NewHandle.Data.Get());
 		}
@@ -1001,10 +1008,10 @@ void AVTHeroCharacter::OnRep_PlayerState()
 		BindASCInput();
 
 		AbilitySystemComponent->AbilityFailedCallbacks.AddUObject(this, &AVTHeroCharacter::OnAbilityActivationFailed);
-		
+
 		AttributeSetBase = PS->GetAttributeSetBase();
 		AmmoAttributeSet = PS->GetAmmoAttributeSet();
-		AbilityAttributeMap = PS->GetAbilityAttributeSet();
+		LoadCurrentHeroAbilityInfo(PS);
 
 		// If we handle players disconnecting and rejoining in the future, we'll have to change this so that posession from rejoining doesn't reset attributes.
 		// For now assume possession = spawn/respawn.

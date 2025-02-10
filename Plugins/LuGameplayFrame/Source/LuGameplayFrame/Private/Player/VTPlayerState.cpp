@@ -2,6 +2,7 @@
 
 
 #include "Player/VTPlayerState.h"
+
 #include "Characters/Abilities/AttributeSets/VTAmmoAttributeSet.h"
 #include "Characters/Abilities/AttributeSets/VTAttributeSetBase.h"
 #include "Characters/Abilities/VTAbilitySystemComponent.h"
@@ -9,6 +10,9 @@
 #include "Characters/Heroes/Abilities/VTAbilityAttributeSet.h"
 #include "Player/VTPlayerController.h"
 #include "UI/VTHUDWidget.h"
+
+#include "AttributeSet.h"
+
 #include "Weapons/VTWeapon.h"
 
 AVTPlayerState::AVTPlayerState()
@@ -26,16 +30,28 @@ AVTPlayerState::AVTPlayerState()
 	// automatically registers the AttributeSet with the AbilitySystemComponent
 	AttributeSetBase = CreateDefaultSubobject<UVTAttributeSetBase>(TEXT("AttributeSetBase"));
 	AmmoAttributeSet = CreateDefaultSubobject<UVTAmmoAttributeSet>(TEXT("AmmoAttributeSet"));
-	
-	LoadHeroAbilityAttributeKeyMap();
-	TArray<FGameplayTag> ASTags;
-	AbilityAttributeMap.GetKeys(ASTags);
-	for (FGameplayTag Tag : ASTags)
+
+	// 生成技能AS
+	if (LoadHeroAbilityAttributeEmptyKey())
 	{
-		FString Suffix{Tag.ToString()};
-		Suffix.Append(TEXT("_AbilityAttributeSet"));
-		AbilityAttributeMap[Tag] = CreateDefaultSubobject<UVTAbilityAttributeSet>(*Tag.ToString());
+		TArray<FGameplayTag> ASTags;
+		AbilityAttributeMap.GetKeys(ASTags);
+		for (FGameplayTag Tag : ASTags)
+		{
+			FString Suffix{Tag.ToString()};
+			Suffix.Append(TEXT("_AbilityAttributeSet"));
+			AbilityAttributeMap[Tag] = CreateDefaultSubobject<UVTAbilityAttributeSet>(*Tag.ToString());
+		}
+		if (!LoadHeroAbilityStartupAttributesGEs())
+		{
+			UE_LOG(LogTemp, Error, TEXT("LoadHeroAbilityStartupAttributesGEs failed"));
+		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("LoadHeroAbilityAttributeKeyMap failed"));
+	}
+
 
 	// Set PlayerState's NetUpdateFrequency to the same as the Character.
 	// Default is very low for PlayerStates and introduces perceived lag in the ability system.
@@ -68,6 +84,16 @@ TMap<FGameplayTag, UVTAbilityAttributeSet*> AVTPlayerState::GetAbilityAttributeS
 	return AbilityAttributeMap;
 }
 
+FGameplayTag AVTPlayerState::K2_GetCurrentHeroTag() const
+{
+	return HeroTag;
+}
+
+const FGameplayTag* AVTPlayerState::GetCurrentHeroTag() const
+{
+	return &HeroTag;
+}
+
 FHeroAbilityData AVTPlayerState::GetHeroAbilityData() const
 {
 	UVTHeroDataAsset* Asset = UBFLCommon::GetDefaultHeroDataAssetSync();
@@ -84,7 +110,12 @@ FHeroAbilityData AVTPlayerState::GetHeroAbilityData() const
 	return FHeroAbilityData{};
 }
 
-bool AVTPlayerState::LoadHeroAbilityAttributeKeyMap()
+const TMap<FGameplayTag, TSubclassOf<UGameplayEffect>>& AVTPlayerState::GetAbilityStartupInitAttributesGE() const
+{
+	return StartupInitAbilityAttributesGE;
+}
+
+bool AVTPlayerState::LoadHeroAbilityAttributeEmptyKey()
 {
 	for (FHeroAbilityData HeroAbilityData = GetHeroAbilityData(); FGameplayTag AbilityTag : HeroAbilityData.HeroAbilities)
 	{
@@ -99,6 +130,16 @@ bool AVTPlayerState::LoadHeroAbilityAttributeKeyMap()
 		}
 	}
 	return true;
+}
+
+bool AVTPlayerState::LoadHeroAbilityStartupAttributesGEs()
+{
+	FHeroAbilityData HeroData = GetHeroAbilityData();
+	for (const auto AbilityData : HeroData.AbilityInfoMap)
+	{
+		StartupInitAbilityAttributesGE.Add({AbilityData.Key, AbilityData.Value.PerformanceInfo.StartupOverrideEffects});
+	}
+	return StartupInitAbilityAttributesGE.Num() > 0 ? true : false;
 }
 
 bool AVTPlayerState::IsAlive() const
@@ -169,11 +210,6 @@ void AVTPlayerState::StopInteractionTimer()
 			HUD->StopInteractionTimer();
 		}
 	}
-}
-
-TMap<FGameplayAttributeData, float> AVTPlayerState::GetAttribute(const TArray<FGameplayAttributeData>& TargetAttributeData) const
-{
-	return {};
 }
 
 float AVTPlayerState::GetHealth() const

@@ -87,6 +87,9 @@ struct FAbilityPerformanceInfo
 	TSubclassOf<UVTGameplayAbility> Ability;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
+	TSubclassOf<UGameplayEffect> StartupOverrideEffects;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
 	TArray<TSubclassOf<UGameplayEffect>> Effects;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="EditConditionTag"))
