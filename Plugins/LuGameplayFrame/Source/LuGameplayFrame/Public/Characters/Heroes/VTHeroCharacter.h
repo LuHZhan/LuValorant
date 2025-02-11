@@ -247,6 +247,11 @@ public:
 	/** 绑定Actions */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/**
+	 * 是否是有效的InputAction函数
+	 * @param Func 函数名
+	 * @param bIsParameterFunc 是否是携带可达参数的函数
+	 */
 	static bool IsInputActionValueFunc(const UFunction* Func, bool& bIsParameterFunc);
 
 	UEnhancedInputComponent* GetEnhancedInput() const;
