@@ -11,6 +11,7 @@
 #include "Abilities/VTWeaponGameplayAbility.h"
 #include "Abilities/VTWeaponInitGameplayEffect.h"
 #include "Characters/Abilities/VTAbilityTypes.h"
+
 #include "VTWeapon.generated.h"
 
 UENUM(BlueprintType)

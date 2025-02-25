@@ -9,3 +9,8 @@ Content.rar
 Content/__ExternalActors__
 Content/__ExternalObjects__
 *.avif
+
+Plugins/UnLua
+Plugins/UnLuaTestSuite
+Plugins/UnLuaExtensions
+Plugins/LuExperiment/Content/Lua/BP_BindLua.uasset

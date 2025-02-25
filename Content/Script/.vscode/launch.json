@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lua",
+            "request": "launch",
+            "tag": "normal",
+            "name": "LuaHelper-Attach",
+            "cwd": "${workspaceFolder}",
+            "luaFileExtension": "lua",
+            "autoReconnect": true,
+            "connectionPort": 8818,
+            "stopOnEntry": false,
+            "useCHook": true,
+            "autoPathMode": true,
+        },
+        {
+            "type": "lua",
+            "request": "launch",
+            "tag": "independent_file",
+            "name": "LuaHelper-Attach-IndependentFile",
+            "luaPath": "",
+            "packagePath": [],
+            "luaFileExtension": "",
+            "connectionPort": 8820,
+            "stopOnEntry": true,
+            "useCHook": true,
+        }
+    ]
+}
