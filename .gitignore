@@ -14,3 +14,12 @@ Plugins/UnLua
 Plugins/UnLuaTestSuite
 Plugins/UnLuaExtensions
 Plugins/LuExperiment/Content/Lua/BP_BindLua.uasset
+
+Content/Collections
+Content/Characters
+Content/Developers
+Content/FirstPerson
+Content/FirstPersonArms
+Content/FPWeapon
+Content/LevelPrototyping
+Content/StarterContent
