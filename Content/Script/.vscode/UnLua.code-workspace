@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "../../../Plugins/UnLua/Intermediate/IntelliSense"
+		},
+		{
+			"path": "../../../Plugins/LuExperiment"
+		},
+		{
+			"path": "../../../Plugins/LuGameplayFrame"
 		}
 	],
 	"settings": {}
