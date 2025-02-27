@@ -215,7 +215,8 @@ void AVTPlayerController::ServerKill_Implementation()
 	AVTPlayerState* PS = GetPlayerState<AVTPlayerState>();
 	if (PS)
 	{
-		PS->GetAttributeSetBase()->SetHealth(0.0f);
+		PS->
+		GetAttributeSetBase()->SetHealth(0.0f);
 	}
 }
 
