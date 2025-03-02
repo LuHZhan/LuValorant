@@ -688,25 +688,25 @@ void AVTHeroCharacter::Move(const FInputActionValue& Value)
 
 		if (MovementVector.X > 0)
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "D");
+			// UKismetSystemLibrary::PrintString(GetWorld(), "D");
 			MoveDirection |= EMovementKeys::D;
 			LastMoveKey = EMovementKeys::D;
 		}
 		else if (MovementVector.X < 0)
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "A");
+			// UKismetSystemLibrary::PrintString(GetWorld(), "A");
 			MoveDirection |= EMovementKeys::A;
 			LastMoveKey = EMovementKeys::A;
 		}
 		else if (MovementVector.Y > 0)
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "W");
+			// UKismetSystemLibrary::PrintString(GetWorld(), "W");
 			MoveDirection |= EMovementKeys::W;
 			LastMoveKey = EMovementKeys::W;
 		}
 		else if (MovementVector.Y < 0)
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "S");
+			// UKismetSystemLibrary::PrintString(GetWorld(), "S");
 			MoveDirection |= EMovementKeys::S;
 			LastMoveKey = EMovementKeys::S;
 		}

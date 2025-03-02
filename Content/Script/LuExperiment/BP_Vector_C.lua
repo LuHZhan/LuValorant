@@ -1,3 +1,4 @@
+require("LuaPanda").start("127.0.0.1", 8818)
 --
 -- DESCRIPTION
 --
@@ -7,9 +8,6 @@
 --
 ---@type BP_Vector_C
 local M = UnLua.Class()
-
-require("LuaPanda").start("127.0.0.1", 8818)
-
 local Screen = require("Screen")
 
 -- function M:Initialize(Initializer)
@@ -19,8 +17,10 @@ local Screen = require("Screen")
 -- end
 
 function M:ReceiveBeginPlay()
+    -- self.Super.ReceiveBeginPlay(self)
     local Location = self:K2_GetActorLocation()
-    Screen.PrintToScreen("Luhz " .. UE.UKismetStringLibrary.Conv_VectorToString(Location))
+    local LocationStr = UE.UKismetStringLibrary.Conv_VectorToString(Location)
+    Screen.PrintToScreen("Luhz " .. LocationStr)
     -- self.SetActorTickEnabled(self, true)
 end
 
@@ -29,8 +29,8 @@ end
 
 function M:ReceiveTick()
     -- local Location = UE.FVector()
-    local Location = self:K2_GetActorLocation()
-    Screen.PrintToScreen("Luhz " .. UE.UKismetStringLibrary.Conv_VectorToString(Location))
+    -- local Location = self:K2_GetActorLocation()
+    -- Screen.PrintToScreen("Luhz " .. UE.UKismetStringLibrary.Conv_VectorToString(Location))
 end
 
 -- function M:ReceiveAnyDamage(Damage, DamageType, InstigatedBy, DamageCauser)

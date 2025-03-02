@@ -16,6 +16,7 @@ ALENetworkActorBase::ALENetworkActorBase()
 void ALENetworkActorBase::BeginPlay()
 {
 	Super::BeginPlay();
+	GetWorld();
 	
 }
 
