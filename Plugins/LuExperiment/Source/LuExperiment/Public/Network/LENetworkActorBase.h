@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "LENetworkActorBase.generated.h"
 
+UDELEGATE(BlueprintAuthorityOnly)
+
 UCLASS()
 class LUEXPERIMENT_API ALENetworkActorBase : public AActor
 {

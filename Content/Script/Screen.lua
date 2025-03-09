@@ -7,7 +7,6 @@ function M.PrintToScreen(text, color, duration)
 end
 
 -- function M.Vector()
-    
 -- end
 
 return M
