@@ -11,13 +11,15 @@ ALENetworkActorBase::ALENetworkActorBase()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+ALENetworkActorBase::ALENetworkActorBase(const FObjectInitializer& ObjectInitializer)
+{
+	SetReplicates(true);
+}
+
 // Called when the game starts or when spawned
 void ALENetworkActorBase::BeginPlay()
 {
 	Super::BeginPlay();
-	if (FName(TEXT("Luhz"), FNAME_Find) != NAME_None)
-	{
-	}
 }
 
 // Called every frame

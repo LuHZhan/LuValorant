@@ -6,8 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "LENetworkActorBase.generated.h"
 
-UDELEGATE(BlueprintAuthorityOnly)
-
 UCLASS()
 class LUEXPERIMENT_API ALENetworkActorBase : public AActor
 {
@@ -16,6 +14,7 @@ class LUEXPERIMENT_API ALENetworkActorBase : public AActor
 public:
 	// Sets default values for this actor's properties
 	ALENetworkActorBase();
+	ALENetworkActorBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

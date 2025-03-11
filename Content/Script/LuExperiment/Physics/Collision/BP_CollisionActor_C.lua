@@ -50,7 +50,7 @@ function M:ReceiveShowAABBBox()
         self.BP_BoundDuration,
         0.0
     )
-    require("Screen").PrintToScreen("Rotating", UE.FLinearColor(1, 1, 1, 1), 1.5)
+    -- require("Screen").PrintToScreen("Rotating", UE.FLinearColor(1, 1, 1, 1), 1.5)
 end
 
 function M:ReceiveCreateTimer(bIsAdd)
