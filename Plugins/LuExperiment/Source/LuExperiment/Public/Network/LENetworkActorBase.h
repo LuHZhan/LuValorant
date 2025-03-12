@@ -20,20 +20,20 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool BIsReplicated = true;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// bool BIsReplicated = true;
 
-	UPROPERTY(Replicated)
-	int IntProperty;
-
-	UPROPERTY(Replicated)
-	FRepAttachment StructProperty;
-
-	UPROPERTY(Replicated)
-	TArray<int> ArrProperty;
-
-	UPROPERTY(Replicated)
-	FVector VecProperty;
+	// UPROPERTY(Replicated)
+	// int IntProperty;
+	//
+	// UPROPERTY(Replicated)
+	// FRepAttachment StructProperty;
+	//
+	// UPROPERTY(Replicated)
+	// TArray<int> ArrProperty;
+	//
+	// UPROPERTY(Replicated)
+	// FVector VecProperty;
 
 public:
 	// Called every frame

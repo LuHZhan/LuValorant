@@ -15,22 +15,24 @@ ALENetworkActorBase::ALENetworkActorBase()
 
 ALENetworkActorBase::ALENetworkActorBase(const FObjectInitializer& ObjectInitializer)
 {
-	SetReplicates(true);
+	// SetReplicates(true);
 }
 
-void ALENetworkActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ALENetworkActorBase,IntProperty);
-	DOREPLIFETIME(ALENetworkActorBase, VecProperty);
-	DOREPLIFETIME_CONDITION(ALENetworkActorBase, StructProperty, COND_InitialOnly);
-	DOREPLIFETIME_CONDITION(ALENetworkActorBase, ArrProperty, COND_OwnerOnly);
-}
+// void ALENetworkActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+// {
+// 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+// 	DOREPLIFETIME(ALENetworkActorBase,IntProperty);
+// 	DOREPLIFETIME(ALENetworkActorBase, VecProperty);
+// 	DOREPLIFETIME_CONDITION(ALENetworkActorBase, StructProperty, COND_InitialOnly);
+// 	DOREPLIFETIME_CONDITION(ALENetworkActorBase, ArrProperty, COND_OwnerOnly);
+// }
 
 // Called when the game starts or when spawned
 void ALENetworkActorBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Cast<AActor>(this)->SetActorTickEnabled(false);
 }
 
 // Called every frame

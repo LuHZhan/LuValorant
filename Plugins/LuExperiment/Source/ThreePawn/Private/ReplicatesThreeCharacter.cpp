@@ -14,6 +14,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
 
+#include "ThirdPersonMPProjectile.h"
+
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +62,7 @@ AReplicatesThreeCharacter::AReplicatesThreeCharacter()
 	CurrentHealth = MaxHealth;
 
 	//初始化投射物类
-	// ProjectileClass = AThirdPersonMPProjectile::StaticClass();
+	ProjectileClass = AThirdPersonMPProjectile::StaticClass();
 	//初始化射速
 	FireRate = 0.25f;
 	bIsFiringWeapon = false;
@@ -166,7 +168,7 @@ void AReplicatesThreeCharacter::HandleFire_Implementation()
 	SpawnParameters.Instigator = GetInstigator();
 	SpawnParameters.Owner = this;
 
-	// GetWorld()->SpawnActor<AThirdPersonMPProjectile>(SpawnLocation, SpawnRotation, SpawnParameters);
+	GetWorld()->SpawnActor<AThirdPersonMPProjectile>(SpawnLocation, SpawnRotation, SpawnParameters);
 }
 
 void AReplicatesThreeCharacter::Test_Implementation()
