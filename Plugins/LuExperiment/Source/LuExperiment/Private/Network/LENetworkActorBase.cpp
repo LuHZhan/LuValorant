@@ -3,6 +3,8 @@
 
 #include "Network/LENetworkActorBase.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
 ALENetworkActorBase::ALENetworkActorBase()
@@ -14,6 +16,15 @@ ALENetworkActorBase::ALENetworkActorBase()
 ALENetworkActorBase::ALENetworkActorBase(const FObjectInitializer& ObjectInitializer)
 {
 	SetReplicates(true);
+}
+
+void ALENetworkActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ALENetworkActorBase,IntProperty);
+	DOREPLIFETIME(ALENetworkActorBase, VecProperty);
+	DOREPLIFETIME_CONDITION(ALENetworkActorBase, StructProperty, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(ALENetworkActorBase, ArrProperty, COND_OwnerOnly);
 }
 
 // Called when the game starts or when spawned

@@ -12,13 +12,28 @@ class LUEXPERIMENT_API ALENetworkActorBase : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	ALENetworkActorBase();
 	ALENetworkActorBase(const FObjectInitializer& ObjectInitializer);
 
+	// virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool BIsReplicated = true;
+
+	UPROPERTY(Replicated)
+	int IntProperty;
+
+	UPROPERTY(Replicated)
+	FRepAttachment StructProperty;
+
+	UPROPERTY(Replicated)
+	TArray<int> ArrProperty;
+
+	UPROPERTY(Replicated)
+	FVector VecProperty;
 
 public:
 	// Called every frame
