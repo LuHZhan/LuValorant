@@ -29,6 +29,11 @@
 			"Name": "ThreePawn",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "Library",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	]
 }

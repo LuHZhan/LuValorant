@@ -35,12 +35,22 @@ local M = UnLua.Class()
 -- function M:ReceiveActorEndOverlap(OtherActor)
 -- end
 
-function M:ReceiveShowAABBBox()
+function M:Receive_SetDrawVisibility(bVisibility)
+    self.BP_DrawVisibility = bVisibility
+    if (self.BP_DrawVisibility == true) then
+        self:SetActorTickEnabled(true)
+    else
+        UE.UKismetSystemLibrary.FlushPersistentDebugLines(self:GetWorld())
+        self:SetActorTickEnabled(false)
+        -- self:K2_SetActorRotation(UE.FRotator(0.0, 0.0, 0.0))
+    end
+end
+
+function M:Receive_ShowAABBBox()
     local Mesh = self.SM_Cube
     local Origin = UE.FVector()
     local BoxExtent = UE.FVector()
     UE.UKismetSystemLibrary.GetComponentBounds(Mesh, Origin, BoxExtent, 0.0)
-    -- BoxExtent =  + BoxExtent
     UE.UKismetSystemLibrary.DrawDebugBox(
         self:GetWorld(),
         Origin,
@@ -50,10 +60,9 @@ function M:ReceiveShowAABBBox()
         self.BP_BoundDuration,
         0.0
     )
-    -- require("Screen").PrintToScreen("Rotating", UE.FLinearColor(1, 1, 1, 1), 1.5)
 end
 
-function M:ReceiveCreateTimer(bIsAdd)
+function M:Receive_CreateTimer(bIsAdd)
     if bIsAdd then
         self.BP_CurTimer = UE.UKismetSystemLibrary.K2_SetTimerDelegate({self, M.AddRotation}, 0.005, true)
     else
@@ -61,7 +70,7 @@ function M:ReceiveCreateTimer(bIsAdd)
     end
 end
 
-function M:ReceiveRemoveTimer()
+function M:Receive_RemoveTimer()
     UE.UKismetSystemLibrary.K2_ClearTimerHandle(self, self.BP_CurTimer)
 end
 

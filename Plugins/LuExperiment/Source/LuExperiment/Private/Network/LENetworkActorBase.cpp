@@ -15,7 +15,7 @@ ALENetworkActorBase::ALENetworkActorBase()
 
 ALENetworkActorBase::ALENetworkActorBase(const FObjectInitializer& ObjectInitializer)
 {
-	// SetReplicates(true);
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 // void ALENetworkActorBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -32,7 +32,7 @@ void ALENetworkActorBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Cast<AActor>(this)->SetActorTickEnabled(false);
+	// Cast<AActor>(this)->SetActorTickEnabled(false);
 }
 
 // Called every frame
