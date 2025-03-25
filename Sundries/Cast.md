@@ -144,6 +144,13 @@ UE5重定义了C++的`dynamic_cast`，使其在可能的情况下使用UE的Cast
 
 这使得标准C++代码可以利用UE的高性能Cast系统。
 
+编译配置 ：UE5默认禁用C++ RTTI（通过 -fno-rtti 编译选项），这在 BuildConfiguration.xml 中定义：
+
+```xml
+<CompileAsWinRT>false</CompileAsWinRT>
+<bForceEnableRTTI>false</bForceEnableRTTI> 
+```
+
 ## 总结
 
 UE5的Cast系统通过以下方式优化了类型转换：
