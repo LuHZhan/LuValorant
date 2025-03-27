@@ -35,7 +35,7 @@ void ALENetworkActorBase::BeginPlay()
 	// Cast<AActor>(this)->SetActorTickEnabled(false);
 }
 
-// Called every frame
+// Called every frame/
 void ALENetworkActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
