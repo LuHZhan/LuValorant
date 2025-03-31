@@ -29,4 +29,7 @@ class ULuExperimentBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Execute Sample function", Keywords = "LuExperiment sample test testing"), Category = "LuExperimentTesting")
 	static float LuExperimentSampleFunction(float Param);
+
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	static FVector GetStaticMeshApproxSize(UStaticMesh* InMesh);
 };

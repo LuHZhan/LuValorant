@@ -1,0 +1,18 @@
+{
+    "Lua.diagnostics.disable": [
+        "undefined-doc-name",
+        "undefined-global",
+        "undefined-field",
+        "assign-type-mismatch",
+        "missing-parameter",
+        "inject-field"
+    ],
+    "Lua.diagnostics.globals": [
+        "UnLua",
+        "Lua",
+        "UE"
+    ],
+    "Lua.runtime.special": {
+        "require": "require"
+    },
+}

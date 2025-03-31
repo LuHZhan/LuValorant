@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "../Plugins/GMP"
+		},
+		{
+			"path": "../.vscode/"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"atomic": "cpp",
+			"compare": "cpp",
+			"concepts": "cpp",
+			"exception": "cpp",
+			"limits": "cpp",
+			"memory": "cpp",
+			"new": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"utility": "cpp",
+			"variant": "cpp",
+			"xmemory": "cpp",
+			"xtr1common": "cpp",
+			"xutility": "cpp"
+		}
+	}
+}
