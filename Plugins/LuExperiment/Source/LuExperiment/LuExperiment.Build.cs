@@ -38,6 +38,7 @@ public class LuExperiment : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"MeshDescription"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

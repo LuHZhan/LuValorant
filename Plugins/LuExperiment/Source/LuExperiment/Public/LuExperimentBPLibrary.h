@@ -23,7 +23,7 @@
 *	https://wiki.unrealengine.com/Custom_Blueprint_Node_Creation
 */
 UCLASS()
-class ULuExperimentBPLibrary : public UBlueprintFunctionLibrary
+class LUEXPERIMENT_API ULuExperimentBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 

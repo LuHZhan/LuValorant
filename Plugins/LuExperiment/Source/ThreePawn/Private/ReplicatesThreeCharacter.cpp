@@ -74,12 +74,6 @@ void AReplicatesThreeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AReplicatesThreeCharacter, CurrentHealth);
 }
 
-void AReplicatesThreeCharacter::BeginPlay()
-{
-	// Call the base class  
-	Super::BeginPlay();
-}
-
 void AReplicatesThreeCharacter::SetCurrentHealth(float healthValue)
 {
 	if (GetLocalRole() == ROLE_Authority)

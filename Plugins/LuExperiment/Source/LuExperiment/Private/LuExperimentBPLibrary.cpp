@@ -2,6 +2,7 @@
 
 #include "LuExperimentBPLibrary.h"
 #include "LuExperiment.h"
+#include "MeshDescription.h"
 #include "StaticMeshAttributes.h"
 
 ULuExperimentBPLibrary::ULuExperimentBPLibrary(const FObjectInitializer& ObjectInitializer)
@@ -27,7 +28,7 @@ FVector ULuExperimentBPLibrary::GetStaticMeshApproxSize(UStaticMesh* InMesh)
 		return FVector::ZeroVector;
 	}
 
-	FStaticMeshConstAttributes Attributes(*MeshDescription);
+	const FStaticMeshConstAttributes Attributes(*MeshDescription);
 	TVertexAttributesConstRef<FVector3f> VertexPositions = Attributes.GetVertexPositions();
 
 	// 计算边界盒
